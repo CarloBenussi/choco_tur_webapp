@@ -1,13 +1,13 @@
-package com.chocotur.chocotur;
+package com.choco_tur.choco_tur;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class ChocoturApplication {
+public class ChocoTurApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(ChocoturApplication.class, args);
+		SpringApplication.run(ChocoTurApplication.class, args);
 	}
 
 }
