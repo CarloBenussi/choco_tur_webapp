@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface UserRepository extends CrudRepository<UserLoginInfo, Integer> {
     UserLoginInfo findByEmail(String email);
+    UserLoginInfo findByEmailVerificationToken(String emailVerificationToken);
 }

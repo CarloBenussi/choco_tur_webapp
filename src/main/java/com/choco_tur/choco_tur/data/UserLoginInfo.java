@@ -29,8 +29,8 @@ public class UserLoginInfo {
   @Column(name="EmailVerificationToken")
   private String emailVerificationToken;
 
-  @Column(name="EmailVerificationTokenGenerationTime")
-  private Timestamp emailVerificationTokenGenerationTime;
+  @Column(name="EmailVerificationTokenExpirationTime")
+  private Timestamp emailVerificationTokenExpirationTime;
 
   @Column(name="EmailValidationStatus")
   private boolean emailValidationStatus = false;
