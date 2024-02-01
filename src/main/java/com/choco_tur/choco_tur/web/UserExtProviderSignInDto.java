@@ -2,8 +2,7 @@ package com.choco_tur.choco_tur.web;
 
 import com.choco_tur.choco_tur.utils.PasswordMatches;
 import com.choco_tur.choco_tur.utils.ValidEmail;
-
-import com.choco_tur.choco_tur.utils.ValidPassword;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -11,7 +10,7 @@ import lombok.Setter;
 
 @PasswordMatches
 @Getter @Setter
-public class UserRegistrationDto {
+public class UserExtProviderSignInDto {
   @NotNull
   @NotEmpty
   @ValidEmail
@@ -19,11 +18,8 @@ public class UserRegistrationDto {
 
   @NotNull
   @NotEmpty
-  //@ValidPassword
-  private String password;
+  private String token;
 
-  @NotNull
-  @NotEmpty
-  //@ValidPassword
-  private String matchingPassword;
+  @Min(1)
+  private int providerId;
 }

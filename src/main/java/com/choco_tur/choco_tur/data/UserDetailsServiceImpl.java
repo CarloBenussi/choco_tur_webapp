@@ -32,9 +32,18 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         boolean credentialsNonExpired = true;
         boolean accountNonLocked = true;
 
-        return new org.springframework.security.core.userdetails.User(
-                user.getEmail(), user.getPassword(), user.isEmailValidationStatus(), accountNonExpired,
-                credentialsNonExpired, accountNonLocked, getAuthorities(List.of("ROLE_USER")));
+        if (user.getPassword() != null) {
+            return new org.springframework.security.core.userdetails.User(
+                    user.getEmail(), user.getPassword(), user.isEmailValidationStatus(), accountNonExpired,
+                    credentialsNonExpired, accountNonLocked, getAuthorities(List.of("ROLE_USER")));
+        } else if (user.getExternalProviderId() != null) {
+            // TODO: Here we need to (see 'AbstractUserDetailsAuthenticationProvider::authenticate').
+            return new org.springframework.security.core.userdetails.User(
+                    user.getEmail(), null, user.isEmailValidationStatus(), accountNonExpired,
+                    credentialsNonExpired, accountNonLocked, getAuthorities(List.of("ROLE_USER")));
+        } else {
+            throw new UsernameNotFoundException("User with email " + email + " has no password nor external provider set.");
+        }
     }
 
     private static List<GrantedAuthority> getAuthorities(List<String> roles) {

@@ -2,11 +2,8 @@ package com.choco_tur.choco_tur.web;
 
 import com.choco_tur.choco_tur.data.UserLoginInfo;
 import com.choco_tur.choco_tur.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.choco_tur.choco_tur.utils.CommonUtils;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.MessageSource;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
@@ -26,9 +23,9 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
 
     private void confirmRegistration(OnRegistrationCompleteEvent event) {
         UserLoginInfo user = event.getUser();
-        String token = UUID.randomUUID().toString();
-        userService.saveEmailVerificationToken(user, token);
+        String number = CommonUtils.getSixDigitNumberSequence();
+        userService.saveEmailVerificationNumber(user, number);
 
-        userService.sendEmailVerificationToken(user, token, event.getAppUrl(), event.getLocale());
+        userService.sendEmailVerificationNumber(user, number, event.getAppUrl(), event.getLocale());
     }
 }

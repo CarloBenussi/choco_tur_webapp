@@ -47,22 +47,11 @@ public class RestResponseEntityExceptionHandler extends ResponseEntityExceptionH
     }
 
     @ExceptionHandler({ Exception.class })
-    public ResponseEntity<Object> handleInternal(RuntimeException ex, WebRequest request) {
-        logger.error("500 Status Code", ex);
-
-        return handleExceptionInternal(ex, messageSource.getMessage("message.error",
-                null, request.getLocale()), new HttpHeaders(), HttpStatus.NOT_FOUND, request);
-    }
-
-    @ExceptionHandler({ Exception.class })
     public ResponseEntity<Object> handleBindException
             (BindException ex, HttpHeaders headers, HttpStatus status, WebRequest request) {
         logger.error("400 Status Code", ex);
         BindingResult result = ex.getBindingResult();
 
-        return handleExceptionInternal(
-                ex, result.getFieldErrors(), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+        return handleExceptionInternal(ex, result.getFieldErrors(), headers, status, request);
     }
-
-    // TODO: Handle DisabledException, LockedException, BadCredentialsException
 }

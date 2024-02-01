@@ -21,8 +21,8 @@ public class JwtService {
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
-    @Value("${security.jwt.expiration-time}")
-    private long jwtExpiration;
+    @Value("${security.jwt.expiration-time-ms}")
+    private long jwtExpirationMs;
 
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -38,7 +38,7 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, String email) {
-        return buildToken(extraClaims, email, jwtExpiration);
+        return buildToken(extraClaims, email, jwtExpirationMs);
     }
 
     public boolean isTokenValid(String token, String email) {
@@ -47,22 +47,23 @@ public class JwtService {
     }
 
     public long getExpirationTime() {
-        return jwtExpiration;
+        return jwtExpirationMs;
     }
 
     private String buildToken(
             Map<String, Object> extraClaims,
             String email,
-            long expiration
+            long expirationMs
     ) {
         return Jwts
                 .builder()
                 .setClaims(extraClaims)
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .setExpiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256)
                 .compact();
+        // TODO: Refresh token??
     }
 
     private boolean isTokenExpired(String token) {

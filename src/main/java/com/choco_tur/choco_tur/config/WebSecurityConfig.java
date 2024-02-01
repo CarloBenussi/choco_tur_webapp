@@ -4,6 +4,9 @@ import javax.sql.DataSource;
 
 import com.choco_tur.choco_tur.data.UserDetailsServiceImpl;
 import com.choco_tur.choco_tur.web.JwtAuthenticationFilter;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +21,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.Collections;
+
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
@@ -27,6 +34,9 @@ public class WebSecurityConfig {
 
   @Autowired
   private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+  @Autowired
+  private ConfigProperties configProperties;
 
   @Bean
   public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
@@ -65,5 +75,12 @@ public class WebSecurityConfig {
     authProvider.setUserDetailsService(userDetailsService);
     authProvider.setPasswordEncoder(encoder());
     return authProvider;
+  }
+
+  @Bean
+  public GoogleIdTokenVerifier googleIdTokenVerifier() {
+    return new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
+            .setAudience(Collections.singletonList(configProperties.getGoogleClientId()))
+            .build();
   }
 }

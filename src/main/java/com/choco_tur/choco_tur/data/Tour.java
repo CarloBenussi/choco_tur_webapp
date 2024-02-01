@@ -17,31 +17,31 @@ import lombok.Setter;
 public class Tour {
   
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(name="TourId")
-  private int id;
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name="TOUR_ID")
+  private long id;
 
-  @Column(name="TourName")
+  @Column(name="TOUR_NAME")
   private String name;
 
-  @Column(name="CostEuros")
+  @Column(name="COST_EUROS")
   private float costEuros;
 
-  @Column(name="LengthKm")
+  @Column(name="LENGTH_KM")
   private float lengthKm;
 
-  @Column(name="AvgDuration")
+  @Column(name="AVG_DURATION")
   private Time avgDuration;
 
-  @Column(name="Description")
+  @Column(name="DESCRIPTION")
   private String description;
 
-  @Column(name="StopsCount")
+  @Column(name="STOPS_COUNT")
   private int stopsCount;
 
-  @Column(name="TastingsCount")
+  @Column(name="TASTINGS_COUNT")
   private int tastingsCount;
 
-  @Column(name="ImageId")
+  @Column(name="IMAGE_ID")
   private int imageId;
 }

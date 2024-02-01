@@ -11,39 +11,36 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+@Getter @Setter
 @Entity
 @Table(name="user_login_info")
-@Getter @Setter
 public class UserLoginInfo {
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(name="UserId")
-  private int id;
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @Column(name="USER_ID")
+  private long id;
 
-  @Column(name="EmailAddress")
+  @Column(name="EMAIL_ADDRESS")
   private String email;
 
-  @Column(name="Password")
+  @Column(name="PASSWORD")
   private String password;
 
-  @Column(name="EmailVerificationToken")
-  private String emailVerificationToken;
+  @Column(name="EMAIL_VERIFICATION_NUMBER")
+  private String emailVerificationNumber;
 
-  @Column(name="EmailVerificationTokenExpirationTime")
-  private Timestamp emailVerificationTokenExpirationTime;
+  @Column(name="EMAIL_VERIFICATION_NUMBER_EXPIRATION_TIME")
+  private Timestamp emailVerificationNumberExpirationTime;
 
-  @Column(name="EmailValidationStatus")
+  @Column(name="EMAIL_VALIDATION_STATUS")
   private boolean emailValidationStatus = false;
 
-  @Column(name="PasswordRecoveryToken")
-  private String passwordRecoveryToken;
+  @Column(name="PASSWORD_RESET_TOKEN")
+  private String passwordResetToken;
 
-  @Column(name="PasswordRecoveryTokenGenerationTime")
-  private Timestamp passwordRecoveryTokenGenerationTime;
+  @Column(name="PASSWORD_RESET_TOKEN_EXPIRATION_TIME")
+  private Timestamp passwordResetTokenGenerationTime;
 
-  @Column(name="ExternalProviderId")
-  private int externalProviderId;
-
-  @Column(name="ExternalProviderToken")
-  private String externalProviderToken;
+  @Column(name="EXTERNAL_PROVIDER_ID")
+  private Integer externalProviderId;
 }
