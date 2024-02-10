@@ -19,11 +19,11 @@ public class UserRegistrationDto {
 
   @NotNull
   @NotEmpty
-  //@ValidPassword
+  @ValidPassword
   private String password;
 
   @NotNull
   @NotEmpty
-  //@ValidPassword
+  @ValidPassword
   private String matchingPassword;
 }
