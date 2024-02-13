@@ -3,7 +3,7 @@ package com.choco_tur.choco_tur.utils;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 
-import com.choco_tur.choco_tur.web.UserRegistrationDto;
+import com.choco_tur.choco_tur.web.dto.UserRegistrationDto;
 
 public class PasswordMatchesValidator
   implements ConstraintValidator<PasswordMatches, Object> {

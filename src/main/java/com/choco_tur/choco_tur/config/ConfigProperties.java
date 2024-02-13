@@ -13,4 +13,5 @@ public class ConfigProperties {
     private String senderMail;
     private String senderPassword;
     private String googleClientId;
+    private String firestoreServiceAccount;
 }

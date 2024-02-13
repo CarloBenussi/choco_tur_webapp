@@ -6,11 +6,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class UserEmailWithTokenDto {
+public class UserLoginWithTokenDto {
     @NotEmpty
     @ValidEmail
     private String email;
 
     @NotEmpty
-    private String token;
+    private String accessToken;
 }

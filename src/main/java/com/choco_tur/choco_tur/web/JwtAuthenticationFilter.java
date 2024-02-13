@@ -1,6 +1,7 @@
 package com.choco_tur.choco_tur.web;
 
 import com.choco_tur.choco_tur.service.JwtService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -66,9 +67,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
 
             filterChain.doFilter(request, response);
-        } catch (Exception exception) {
-            // TODO: Handle.
-            throw exception;
+        } catch (ExpiredJwtException exception) {
+            // Expired or invalid token, simply avoid setting authentication.
+            filterChain.doFilter(request, response);
         }
     }
 }

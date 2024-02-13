@@ -1,12 +1,15 @@
 package com.choco_tur.choco_tur.web;
 
-import com.choco_tur.choco_tur.data.UserLoginInfo;
+import com.choco_tur.choco_tur.data.User;
+import com.choco_tur.choco_tur.data.UserTourInfo;
 import com.choco_tur.choco_tur.service.ExternalProviderService;
 import com.choco_tur.choco_tur.service.JwtService;
 import com.choco_tur.choco_tur.service.UserAlreadyExistAuthenticationException;
 import com.choco_tur.choco_tur.utils.CommonUtils;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.choco_tur.choco_tur.web.dto.UserExtProviderSignInDto;
+import com.choco_tur.choco_tur.web.dto.UserLoginDto;
+import com.choco_tur.choco_tur.web.dto.UserLoginWithTokenDto;
+import com.choco_tur.choco_tur.web.dto.UserRegistrationDto;
 import com.nimbusds.oauth2.sdk.GeneralException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.ApplicationEventPublisher;
@@ -25,8 +28,10 @@ import jakarta.validation.Valid;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 @RestController
 @RequestMapping("/users")
@@ -63,20 +68,14 @@ public class UserController {
     public ResponseEntity<String> registerUser(
             @Valid @RequestBody UserRegistrationDto userDto,
             HttpServletRequest request
-    ) {
-        try {
-            UserLoginInfo registered = userService.registerNewUser(userDto);
+    ) throws ExecutionException, InterruptedException, UserAlreadyExistAuthenticationException {
+        User registered = userService.registerNewUser(userDto);
 
-            String appUrl = request.getContextPath();
-            applicationEventPublisher.publishEvent(new OnRegistrationCompleteEvent(registered,
-                    request.getLocale(), appUrl));
-        } catch (UserAlreadyExistAuthenticationException uaeEx) {
-            return new ResponseEntity<>(uaeEx.getMessage(), HttpStatus.BAD_REQUEST);
-        } catch (RuntimeException e) {
-            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        String appUrl = request.getContextPath();
+        applicationEventPublisher.publishEvent(new OnRegistrationCompleteEvent(registered,
+                request.getLocale(), appUrl));
 
-        String responseMessage = messageSource.getMessage("message.registrationSuccess",
+        String responseMessage = messageSource.getMessage("registrationSuccess",
                 null, request.getLocale());
         return new ResponseEntity<>(responseMessage, HttpStatus.OK);
     }
@@ -85,40 +84,48 @@ public class UserController {
     public ResponseEntity<Object> signInWithExtProvider(
         @Valid @RequestBody UserExtProviderSignInDto userDto,
         HttpServletRequest request
-    ) throws GeneralSecurityException, IOException {
+    ) throws GeneralSecurityException, ExecutionException, InterruptedException {
         try {
             externalProviderService.validateExtProviderToken(userDto);
-            userService.signInUserWithExtProvider(userDto);
+
+            // Authenticate user as well.
+            // TODO: Here the 'authenticate' call will check that the hash of the passed password
+            // matches the hash of the password saved for this user. So we need to generate a
+            // temporary password for the user, save it (hashed) and return it on 'signInUserWithExtProvider'
+            // so we can pass it here? Or maybe we can simply skip this step and generate the jwt token
+            // directly?
+            Authentication authenticationRequest =
+                    UsernamePasswordAuthenticationToken.unauthenticated(
+                            userDto.getEmail(), null);
+            this.authenticationManager.authenticate(authenticationRequest);
+            // TODO: Handle DisabledException, LockedException, BadCredentialsException
+
+            String jwtAccessToken = jwtService.generateAccessToken(userDto.getEmail());
+            String jwtRefreshToken = jwtService.generateRefreshToken(userDto.getEmail());
+
+            User user = userService.signInUserWithExtProvider(userDto);
+            List<UserTourInfo> userTourInfos = userService.getUserTourInfos(user);
+
+            LoginResponse loginResponse = LoginResponse.builder()
+                    .accessToken(jwtAccessToken)
+                    .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
+                    .refreshToken(jwtRefreshToken)
+                    .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
+                    .tours(userTourInfos)
+                    .build();
+
+            return ResponseEntity.ok(loginResponse);
         } catch (RuntimeException | IOException | GeneralException e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
-
-        // Authenticate user as well.
-        // TODO: Here the 'authenticate' call will check that the hash of the passed password
-        // matches the hash of the password saved for this user. So we need to generate a
-        // temporary password for the user, save it (hashed) and return it on 'signInUserWithExtProvider'
-        // so we can pass it here? Or maybe we can simply skip this step and generate the jwt token
-        // directly?
-        Authentication authenticationRequest =
-                UsernamePasswordAuthenticationToken.unauthenticated(
-                        userDto.getEmail(), null);
-        this.authenticationManager.authenticate(authenticationRequest);
-        // TODO: Handle DisabledException, LockedException, BadCredentialsException
-
-        String jwtToken = jwtService.generateToken(userDto.getEmail());
-
-        LoginResponse loginResponse = LoginResponse
-                .builder().token(jwtToken).expiresIn(jwtService.getExpirationTime()).build();
-
-        return ResponseEntity.ok(loginResponse);
     }
 
     @GetMapping("/registrationConfirmation")
-    public ResponseEntity<String> confirmRegistration(
+    public ResponseEntity<?> confirmRegistration(
             @RequestParam("email")String email,
             @RequestParam("number")String number
-    ) {
-        UserLoginInfo user = userService.getUserByEmail(email);
+    ) throws ExecutionException, InterruptedException {
+        User user = userService.getUserByEmail(email);
         if (user == null) {
             return new ResponseEntity<>("No user found by email", HttpStatus.BAD_REQUEST);
         }
@@ -128,31 +135,47 @@ public class UserController {
         }
 
         Calendar calendar = Calendar.getInstance();
-        if (user.getEmailVerificationNumberExpirationTime().getTime() - calendar.getTime().getTime() <= 0) {
+        if (user.getEmailVerificationNumberExpirationTime() - calendar.getTime().getTime() <= 0) {
             return new ResponseEntity<>("Authentication number expired", HttpStatus.BAD_REQUEST);
         }
 
         user.setEmailValidationStatus(true);
         user.setEmailVerificationNumber(null);
-        user.setEmailVerificationNumberExpirationTime(null);
+        user.setEmailVerificationNumberExpirationTime(-1);
         userService.saveUser(user);
 
-        return new ResponseEntity<>("Email confirmed!", HttpStatus.OK);
+        List<UserTourInfo> userTourInfos = userService.getUserTourInfos(user);
+
+        String jwtAccessToken = jwtService.generateAccessToken(email);
+        String jwtRefreshToken = jwtService.generateRefreshToken(email);
+        LoginResponse loginResponse = LoginResponse.builder()
+                .accessToken(jwtAccessToken)
+                .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
+                .refreshToken(jwtRefreshToken)
+                .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
+                .tours(userTourInfos)
+                .build();
+
+        return ResponseEntity.ok(loginResponse);
     }
 
     @GetMapping("/resendEmailVerificationNumber")
     public ResponseEntity<String> resendEmailVerificationNumber(
+            @RequestParam("email")String email,
             @RequestParam("number")String number,
             HttpServletRequest request
-    ) {
-        UserLoginInfo user = userService.getUserByEmailVerificationNumber(number);
+    ) throws ExecutionException, InterruptedException {
+        User user = userService.getUserByEmail(email);
         if (user == null) {
-            return new ResponseEntity<>("No user found by email verification token", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("No user found with email " + email, HttpStatus.BAD_REQUEST);
+        }
+        if (!user.getEmailVerificationNumber().equals(number)) {
+            return new ResponseEntity<>("User with email " + email + " has different verification number", HttpStatus.BAD_REQUEST);
         }
 
         String newNumber = CommonUtils.getSixDigitNumberSequence();
         userService.saveEmailVerificationNumber(user, newNumber);
-        userService.sendEmailVerificationNumber(user, newNumber, request.getContextPath(), request.getLocale());
+        userService.sendEmailVerificationNumber(user, newNumber, request.getLocale());
 
         return new ResponseEntity<>("Verification email resent", HttpStatus.OK);
     }
@@ -161,10 +184,10 @@ public class UserController {
     public ResponseEntity<String> resetPassword(
         @RequestParam("email")String email,
         HttpServletRequest request
-    ) {
-        UserLoginInfo user = userService.getUserByEmail(email);
+    ) throws ExecutionException, InterruptedException {
+        User user = userService.getUserByEmail(email);
         if (user == null) {
-            return new ResponseEntity<>("No user found by email " + email, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("No user found with email " + email, HttpStatus.BAD_REQUEST);
         }
 
         String token = UUID.randomUUID().toString();
@@ -177,15 +200,19 @@ public class UserController {
 
     @GetMapping("/changePassword")
     public ResponseEntity<String> changePassword(
+        @RequestParam("email")String email,
         @RequestParam("token")String token
-    ) {
-        UserLoginInfo user = userService.getUserByPasswordResetToken(token);
+    ) throws ExecutionException, InterruptedException {
+        User user = userService.getUserByEmail(email);
         if (user == null) {
-            return new ResponseEntity<>("No user found by password reset token", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("No user found with email " + email, HttpStatus.BAD_REQUEST);
+        }
+        if (!user.getPasswordResetToken().equals(token)) {
+            return new ResponseEntity<>("User with email " + email + " has different password reset token", HttpStatus.BAD_REQUEST);
         }
 
         Calendar calendar = Calendar.getInstance();
-        if (user.getPasswordResetTokenGenerationTime().getTime() - calendar.getTime().getTime() <= 0) {
+        if (user.getPasswordResetTokenGenerationTime() - calendar.getTime().getTime() <= 0) {
             return new ResponseEntity<>("Password reset token expired", HttpStatus.BAD_REQUEST);
         }
 
@@ -195,16 +222,20 @@ public class UserController {
 
     @PostMapping("/savePassword")
     public ResponseEntity<String> savePassword(
+        @RequestParam("email")String email,
         @RequestParam("token")String token,
-        @RequestParam("token")String newPassword
-    ) {
-        UserLoginInfo user = userService.getUserByPasswordResetToken(token);
+        @RequestParam("password")String newPassword
+    ) throws ExecutionException, InterruptedException {
+        User user = userService.getUserByEmail(email);
         if (user == null) {
-            return new ResponseEntity<>("No user found by password reset token", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("No user found with email " + email, HttpStatus.BAD_REQUEST);
+        }
+        if (!user.getPasswordResetToken().equals(token)) {
+            return new ResponseEntity<>("User with email " + email + " has different password reset token", HttpStatus.BAD_REQUEST);
         }
 
         Calendar calendar = Calendar.getInstance();
-        if (user.getPasswordResetTokenGenerationTime().getTime() - calendar.getTime().getTime() <= 0) {
+        if (user.getPasswordResetTokenGenerationTime() - calendar.getTime().getTime() <= 0) {
             return new ResponseEntity<>("Password reset token expired", HttpStatus.BAD_REQUEST);
         }
 
@@ -215,17 +246,56 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody UserLoginDto userLoginDto) {
+    public ResponseEntity<LoginResponse> login(@RequestBody UserLoginDto userLoginDto) throws ExecutionException, InterruptedException {
         Authentication authenticationRequest =
                 UsernamePasswordAuthenticationToken.unauthenticated(
                         userLoginDto.getEmail(), userLoginDto.getPassword());
         this.authenticationManager.authenticate(authenticationRequest);
-        // TODO: Handle DisabledException, LockedException, BadCredentialsException
+        // TODO: Handle DisabledException, LockedException
 
-        String jwtToken = jwtService.generateToken(userLoginDto.getEmail());
+        User user = userService.getUserByEmail(userLoginDto.getEmail());
+        List<UserTourInfo> userTourInfos = userService.getUserTourInfos(user);
 
-        LoginResponse loginResponse = LoginResponse
-                .builder().token(jwtToken).expiresIn(jwtService.getExpirationTime()).build();
+        String jwtAccessToken = jwtService.generateAccessToken(userLoginDto.getEmail());
+        String jwtRefreshToken = jwtService.generateRefreshToken(userLoginDto.getEmail());
+        LoginResponse loginResponse = LoginResponse.builder()
+                .accessToken(jwtAccessToken)
+                .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
+                .refreshToken(jwtRefreshToken)
+                .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
+                .tours(userTourInfos)
+                .build();
+
+        return ResponseEntity.ok(loginResponse);
+    }
+
+    @PostMapping("/loginWithToken")
+    public ResponseEntity<?> loginWithToken(@RequestBody UserLoginWithTokenDto userLoginWithTokenDto) throws ExecutionException, InterruptedException {
+        if (!jwtService.isTokenValid(userLoginWithTokenDto.getAccessToken(), userLoginWithTokenDto.getEmail())) {
+            return new ResponseEntity<>("Token expired.", HttpStatus.UNAUTHORIZED);
+        }
+
+        User user = userService.getUserByEmail(userLoginWithTokenDto.getEmail());
+        List<UserTourInfo> userTourInfos = userService.getUserTourInfos(user);
+
+        return ResponseEntity.ok("Login with token successful!");
+    }
+
+    @GetMapping("/refreshToken")
+    public ResponseEntity<?> refreshToken(
+            @RequestParam("email")String email,
+            @RequestParam("refreshToken")String refreshToken
+    ) {
+        if (!jwtService.isTokenValid(refreshToken, email)) {
+            return new ResponseEntity<>("Refresh token expired.", HttpStatus.UNAUTHORIZED);
+        }
+
+        // Regenerate new tokens.
+        String jwtAccessToken = jwtService.generateAccessToken(email);
+        LoginResponse loginResponse = LoginResponse.builder()
+                .accessToken(jwtAccessToken)
+                .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
+                .build();
 
         return ResponseEntity.ok(loginResponse);
     }

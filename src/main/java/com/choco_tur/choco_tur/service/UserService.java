@@ -1,12 +1,10 @@
 package com.choco_tur.choco_tur.service;
 
-import com.choco_tur.choco_tur.data.UserLoginInfo;
+import com.choco_tur.choco_tur.data.User;
 import com.choco_tur.choco_tur.data.UserRepository;
-import com.choco_tur.choco_tur.web.UserExtProviderSignInDto;
-import com.choco_tur.choco_tur.web.UserRegistrationDto;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.choco_tur.choco_tur.data.UserTourInfo;
+import com.choco_tur.choco_tur.web.dto.UserExtProviderSignInDto;
+import com.choco_tur.choco_tur.web.dto.UserRegistrationDto;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -14,10 +12,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.security.GeneralSecurityException;
 import java.sql.Timestamp;
 import java.util.Calendar;
+import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.ExecutionException;
 
 @Service
 public class UserService {
@@ -25,68 +24,69 @@ public class UserService {
     private static final int PASSWORD_RESET_TOKEN_EXPIRATION = 10;
 
     private final UserRepository userRepository;
+    private final PasswordEncoder encoder;
+    private final MessageSource messageSource;
+    private final JavaMailSender mailSender;
 
-    @Autowired
-    private PasswordEncoder encoder;
-
-    @Autowired
-    private MessageSource messageSource;
-
-    @Autowired
-    private JavaMailSender mailSender;
-
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder encoder, MessageSource messageSource, JavaMailSender mailSender) {
         this.userRepository = userRepository;
+        this.encoder = encoder;
+        this.messageSource = messageSource;
+        this.mailSender = mailSender;
     }
 
-    public UserLoginInfo registerNewUser(UserRegistrationDto userDto) throws UserAlreadyExistAuthenticationException {
+    public User registerNewUser(UserRegistrationDto userDto) throws UserAlreadyExistAuthenticationException, ExecutionException, InterruptedException {
         if (userRepository.findByEmail(userDto.getEmail()) != null) {
             throw new UserAlreadyExistAuthenticationException("There is an account with that email address: "
                     + userDto.getEmail());
         }
 
-        UserLoginInfo user = new UserLoginInfo();
+        User user = new User();
         user.setEmail(userDto.getEmail());
         user.setPassword(encoder.encode(userDto.getPassword()));
 
-        return userRepository.save(user);
+        saveUser(user);
+        return user;
     }
 
-    public void signInUserWithExtProvider(UserExtProviderSignInDto userDto) throws IOException {
+    public User signInUserWithExtProvider(UserExtProviderSignInDto userDto) throws IOException, ExecutionException, InterruptedException {
         // Check if a user already exists registered with the same ext provider.
-        UserLoginInfo existingUser = userRepository.findByEmail(userDto.getEmail());
+        User existingUser = userRepository.findByEmail(userDto.getEmail());
         if (existingUser != null) {
             if (existingUser.getExternalProviderId() == userDto.getProviderId()) {
                 // Nothing to save, user is already present.
-                return;
+                return existingUser;
             } else {
                 // TODO: Warn user that its email is already registered with either other ext
                 // provider or directly.
             }
         }
 
-        UserLoginInfo user = new UserLoginInfo();
+        // TODO: Validate token depending on ext provider.
+
+        User user = new User();
         user.setEmail(userDto.getEmail());
         user.setEmailValidationStatus(true);
         user.setExternalProviderId(userDto.getProviderId());
-        userRepository.save(user);
+        saveUser(user);
+        return user;
     }
 
-    public void saveEmailVerificationNumber(UserLoginInfo user, String sequence) {
+    public void saveEmailVerificationNumber(User user, String sequence) {
         // Calculate expiry date for token.
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Timestamp(cal.getTime().getTime()));
         cal.add(Calendar.MINUTE, EMAIL_TOKEN_EXPIRATION);
 
-        user.setEmailVerificationNumberExpirationTime(new Timestamp(cal.getTime().getTime()));
+        user.setEmailVerificationNumberExpirationTime(cal.getTime().getTime());
         user.setEmailVerificationNumber(sequence);
-        userRepository.save(user);
+        saveUser(user);
     }
 
-    public void sendEmailVerificationNumber(UserLoginInfo user, String number, String appUrl, Locale locale) {
+    public void sendEmailVerificationNumber(User user, String number, Locale locale) {
         String recipientAddress = user.getEmail();
         String subject = "Registration Confirmation";
-        String message = messageSource.getMessage("message.registrationConfirmationEmail", null, locale);
+        String message = messageSource.getMessage("registrationConfirmationEmail", null, locale);
 
         SimpleMailMessage email = new SimpleMailMessage();
         email.setTo(recipientAddress);
@@ -95,23 +95,23 @@ public class UserService {
         mailSender.send(email);
     }
 
-    public void savePasswordResetToken(UserLoginInfo user, String token) {
+    public void savePasswordResetToken(User user, String token) {
         // Calculate expiry date for token.
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Timestamp(cal.getTime().getTime()));
         cal.add(Calendar.MINUTE, PASSWORD_RESET_TOKEN_EXPIRATION);
 
-        user.setPasswordResetTokenGenerationTime(new Timestamp(cal.getTime().getTime()));
+        user.setPasswordResetTokenGenerationTime(cal.getTime().getTime());
         user.setPasswordResetToken(token);
-        userRepository.save(user);
+        saveUser(user);
     }
 
-    public void sendPasswordResetToken(UserLoginInfo user, String token, String appUrl, Locale locale) {
+    public void sendPasswordResetToken(User user, String token, String appUrl, Locale locale) {
         String recipientAddress = user.getEmail();
         String subject = "Password Reset";
         String confirmationUrl
                 = appUrl + "/users/changePassword?token=" + token;
-        String message = messageSource.getMessage("message.passwordReset", null, locale);
+        String message = messageSource.getMessage("passwordReset", null, locale);
 
         SimpleMailMessage email = new SimpleMailMessage();
         email.setTo(recipientAddress);
@@ -120,24 +120,20 @@ public class UserService {
         mailSender.send(email);
     }
 
-    public void changeUserPassword(UserLoginInfo user, String newPassword) {
+    public void changeUserPassword(User user, String newPassword) {
         user.setPassword(encoder.encode(newPassword));
-        userRepository.save(user);
+        saveUser(user);
     }
 
-    public UserLoginInfo getUserByEmailVerificationNumber(String number) {
-        return userRepository.findByEmailVerificationNumber(number);
-    }
-
-    public UserLoginInfo getUserByEmail(String email) {
+    public User getUserByEmail(String email) throws ExecutionException, InterruptedException {
         return userRepository.findByEmail(email);
     }
 
-    public UserLoginInfo getUserByPasswordResetToken(String token) {
-        return userRepository.findByPasswordResetToken(token);
+    public List<UserTourInfo> getUserTourInfos(User user) throws ExecutionException, InterruptedException {
+        return userRepository.getUserTours(user.getEmail());
     }
 
-    public void saveUser(UserLoginInfo user) {
+    public void saveUser(User user) {
         userRepository.save(user);
     }
 }

@@ -21,8 +21,11 @@ public class JwtService {
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
-    @Value("${security.jwt.expiration-time-ms}")
-    private long jwtExpirationMs;
+    @Value("${security.jwt.access-token-expiration-time-ms}")
+    private long jwtAccessTokenExpirationMs;
+
+    @Value("${security.jwt.refresh-token-expiration-time-ms}")
+    private long jwtRefreshTokenExpirationMs;
 
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -33,12 +36,16 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateToken(String email) {
-        return generateToken(new HashMap<>(), email);
+    public String generateAccessToken(String email) {
+        return generateAccessToken(new HashMap<>(), email, jwtAccessTokenExpirationMs);
     }
 
-    public String generateToken(Map<String, Object> extraClaims, String email) {
-        return buildToken(extraClaims, email, jwtExpirationMs);
+    public String generateRefreshToken(String email) {
+        return generateAccessToken(new HashMap<>(), email, jwtRefreshTokenExpirationMs);
+    }
+
+    public String generateAccessToken(Map<String, Object> extraClaims, String email, long expirationTimeMs) {
+        return buildToken(extraClaims, email, expirationTimeMs);
     }
 
     public boolean isTokenValid(String token, String email) {
@@ -46,9 +53,10 @@ public class JwtService {
         return (extractedEmail.equals(email)) && !isTokenExpired(token);
     }
 
-    public long getExpirationTime() {
-        return jwtExpirationMs;
+    public long getAccessTokenExpirationTime() {
+        return jwtAccessTokenExpirationMs;
     }
+    public long getRefreshTokenExpirationTime() { return jwtRefreshTokenExpirationMs; }
 
     private String buildToken(
             Map<String, Object> extraClaims,

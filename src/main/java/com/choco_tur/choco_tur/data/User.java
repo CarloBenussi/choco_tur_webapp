@@ -1,35 +1,30 @@
 package com.choco_tur.choco_tur.data;
 
-import java.sql.Timestamp;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
 @Entity
-public class UserLoginInfo {
+public class User {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private long id;
-
   private String email;
 
   private String password;
 
   private String emailVerificationNumber;
 
-  private Timestamp emailVerificationNumberExpirationTime;
+  private long emailVerificationNumberExpirationTime = -1;
 
   private boolean emailValidationStatus = false;
 
   private String passwordResetToken;
 
-  private Timestamp passwordResetTokenGenerationTime;
+  private long passwordResetTokenGenerationTime = -1;
 
-  private Integer externalProviderId;
+  private Integer externalProviderId = -1;
 }

@@ -3,6 +3,7 @@ package com.choco_tur.choco_tur.service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import org.springframework.stereotype.Service;
 
@@ -17,13 +18,12 @@ public class TourService {
     this.tourRepository = tourRepository;
   }
 
-  public List<Tour> getAllToursInfo() {
-    Iterable<Tour> toursIt = this.tourRepository.findAll();
-
-    List<Tour> tours = new ArrayList<Tour>();
-    toursIt.forEach(tour -> {
-      tours.add(tour);
-    });
+  public List<Tour> getAllToursInfo() throws ExecutionException, InterruptedException {
+    List<Tour> tours = tourRepository.findAllTours();
+    for (Tour tour : tours) {
+      Object tourStopInfos = tourRepository.getTourStopInfos(tour);
+      tour.setStopInfos(tourStopInfos);
+    }
 
     return tours;
   }

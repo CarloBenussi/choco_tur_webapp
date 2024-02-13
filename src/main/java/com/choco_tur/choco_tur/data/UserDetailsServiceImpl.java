@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @Service
 @Transactional
@@ -23,7 +24,12 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        UserLoginInfo user = userRepository.findByEmail(email);
+        User user;
+        try {
+            user = userRepository.findByEmail(email);
+        } catch (ExecutionException | InterruptedException e) {
+            throw new UsernameNotFoundException("Failure with firebase: " + e.getCause().toString());
+        }
         if (user == null) {
             throw new UsernameNotFoundException("No user found with email: " + email);
         }

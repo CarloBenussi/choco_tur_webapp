@@ -1,11 +1,9 @@
 package com.choco_tur.choco_tur.service;
 
-import com.choco_tur.choco_tur.web.UserExtProviderSignInDto;
+import com.choco_tur.choco_tur.web.dto.UserExtProviderSignInDto;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.nimbusds.oauth2.sdk.GeneralException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
