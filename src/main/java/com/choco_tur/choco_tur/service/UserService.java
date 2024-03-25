@@ -44,6 +44,8 @@ public class UserService {
         User user = new User();
         user.setEmail(userDto.getEmail());
         user.setPassword(encoder.encode(userDto.getPassword()));
+        user.setDateOfBirth(userDto.getDateOfBirth());
+        user.setNationality(userDto.getNationality());
 
         saveUser(user);
         return user;
@@ -63,6 +65,8 @@ public class UserService {
         }
 
         // TODO: Validate token depending on ext provider.
+
+        // TODO: Extract user data using ext provider (date of birth, nationality).
 
         User user = new User();
         user.setEmail(userDto.getEmail());
@@ -133,7 +137,15 @@ public class UserService {
         return userRepository.getUserTours(user.getEmail());
     }
 
+    public UserTourInfo getUserTourInfo(User user, String tourId) throws ExecutionException, InterruptedException {
+        return userRepository.getUserTour(user.getEmail(), tourId);
+    }
+
     public void saveUser(User user) {
         userRepository.save(user);
+    }
+
+    public void saveUserTour(User user, UserTourInfo userTourInfo) throws ExecutionException, InterruptedException {
+        userRepository.saveUserTour(user, userTourInfo);
     }
 }

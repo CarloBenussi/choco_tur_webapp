@@ -32,5 +32,10 @@ public class Tour {
 
   private String imageId;
 
+  @ElementCollection
+  private List<String> stopIds;
+
   private Object stopInfos;
+
+  private Object tastingInfos;
 }

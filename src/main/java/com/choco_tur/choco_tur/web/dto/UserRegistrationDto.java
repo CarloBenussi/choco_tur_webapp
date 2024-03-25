@@ -26,4 +26,8 @@ public class UserRegistrationDto {
   @NotEmpty
   @ValidPassword
   private String matchingPassword;
+
+  private String dateOfBirth;
+
+  private String nationality;
 }

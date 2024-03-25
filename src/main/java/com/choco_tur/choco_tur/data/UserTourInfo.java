@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.sql.Date;
+import java.sql.Timestamp;
+
 @Getter
 @Setter
 public class UserTourInfo {
@@ -18,9 +21,14 @@ public class UserTourInfo {
     private Integer purchaseMethod;
 
     @NotEmpty
-    private String tourId;
+    private String id;
 
-    private boolean isActive;
+    @NotEmpty
+    private String title;
 
     private String nextStopId;
+
+    private double progress;
+
+    private boolean isActive;
 }

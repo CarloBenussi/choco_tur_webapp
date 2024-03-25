@@ -27,4 +27,8 @@ public class User {
   private long passwordResetTokenGenerationTime = -1;
 
   private Integer externalProviderId = -1;
+
+  private String dateOfBirth;
+
+  private String nationality;
 }

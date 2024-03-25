@@ -52,6 +52,8 @@ public class WebSecurityConfig {
             .authorizeHttpRequests()
             .requestMatchers("/users/**")
             .permitAll()
+            .requestMatchers("/tours/tours")
+            .permitAll()
             .requestMatchers("/tours/**")
             .authenticated()
             .requestMatchers("/business/**")

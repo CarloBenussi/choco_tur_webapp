@@ -103,15 +103,11 @@ public class UserController {
             String jwtAccessToken = jwtService.generateAccessToken(userDto.getEmail());
             String jwtRefreshToken = jwtService.generateRefreshToken(userDto.getEmail());
 
-            User user = userService.signInUserWithExtProvider(userDto);
-            List<UserTourInfo> userTourInfos = userService.getUserTourInfos(user);
-
             LoginResponse loginResponse = LoginResponse.builder()
                     .accessToken(jwtAccessToken)
                     .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                     .refreshToken(jwtRefreshToken)
                     .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
-                    .tours(userTourInfos)
                     .build();
 
             return ResponseEntity.ok(loginResponse);
@@ -144,8 +140,6 @@ public class UserController {
         user.setEmailVerificationNumberExpirationTime(-1);
         userService.saveUser(user);
 
-        List<UserTourInfo> userTourInfos = userService.getUserTourInfos(user);
-
         String jwtAccessToken = jwtService.generateAccessToken(email);
         String jwtRefreshToken = jwtService.generateRefreshToken(email);
         LoginResponse loginResponse = LoginResponse.builder()
@@ -153,7 +147,6 @@ public class UserController {
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
                 .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
-                .tours(userTourInfos)
                 .build();
 
         return ResponseEntity.ok(loginResponse);
@@ -254,7 +247,6 @@ public class UserController {
         // TODO: Handle DisabledException, LockedException
 
         User user = userService.getUserByEmail(userLoginDto.getEmail());
-        List<UserTourInfo> userTourInfos = userService.getUserTourInfos(user);
 
         String jwtAccessToken = jwtService.generateAccessToken(userLoginDto.getEmail());
         String jwtRefreshToken = jwtService.generateRefreshToken(userLoginDto.getEmail());
@@ -263,7 +255,6 @@ public class UserController {
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
                 .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
-                .tours(userTourInfos)
                 .build();
 
         return ResponseEntity.ok(loginResponse);
@@ -276,7 +267,6 @@ public class UserController {
         }
 
         User user = userService.getUserByEmail(userLoginWithTokenDto.getEmail());
-        List<UserTourInfo> userTourInfos = userService.getUserTourInfos(user);
 
         return ResponseEntity.ok("Login with token successful!");
     }

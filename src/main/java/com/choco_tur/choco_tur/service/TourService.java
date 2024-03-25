@@ -5,26 +5,49 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import com.choco_tur.choco_tur.data.*;
 import org.springframework.stereotype.Service;
-
-import com.choco_tur.choco_tur.data.Tour;
-import com.choco_tur.choco_tur.data.TourRepository;
 
 @Service
 public class TourService {
   private final TourRepository tourRepository;
+  private final TourStopRepository tourStopRepository;
 
-  public TourService(TourRepository tourRepository) {
+  public TourService(TourRepository tourRepository, TourStopRepository tourStopRepository) {
     this.tourRepository = tourRepository;
+      this.tourStopRepository = tourStopRepository;
   }
 
-  public List<Tour> getAllToursInfo() throws ExecutionException, InterruptedException {
+  public List<Tour> getAllTours() throws ExecutionException, InterruptedException {
     List<Tour> tours = tourRepository.findAllTours();
     for (Tour tour : tours) {
       Object tourStopInfos = tourRepository.getTourStopInfos(tour);
       tour.setStopInfos(tourStopInfos);
     }
 
+    for (Tour tour : tours) {
+      Object tourTastingInfos = tourRepository.getTourTastingInfos(tour);
+      tour.setTastingInfos(tourTastingInfos);
+    }
+
     return tours;
+  }
+
+  public Tour getTour(String tourId) throws ExecutionException, InterruptedException {
+    return tourRepository.getTour(tourId);
+  }
+
+  public List<TourStop> getTourStops(String tourId) throws ExecutionException, InterruptedException {
+    Tour tour = tourRepository.getTour(tourId);
+    List<TourStop> stops = new ArrayList<>();
+    for (String stopId : tour.getStopIds()) {
+      stops.add(tourStopRepository.getTourStop(stopId));
+    }
+
+    return stops;
+  }
+
+  public List<TourStopStory> getTourStopStories(String stopId) throws ExecutionException, InterruptedException {
+    return tourStopRepository.getTourStopStories(stopId);
   }
 }

@@ -14,6 +14,8 @@ import java.util.concurrent.ExecutionException;
 public class TourRepository extends FirestoreRepository<Tour> {
 
     static final String TOURS_COLLECTION_NAME = "tours";
+    static final String TOUR_STOP_INFOS_COLLECTION_NAME = "stopInfos";
+    static final String TOUR_TASTING_INFOS_COLLECTION_NAME = "tastingInfos";
 
     private final ObjectMapper objectMapper;
     protected TourRepository(Firestore firestore, ObjectMapper objectMapper) {
@@ -35,14 +37,31 @@ public class TourRepository extends FirestoreRepository<Tour> {
         return tours;
     }
 
+    public Tour getTour(String tourId) throws ExecutionException, InterruptedException {
+        Tour tour = findDocumentById(Tour.class, tourId);
+        tour.setId(tourId);
+        return tour;
+    }
+
     public List<TourStopInfo> getTourStopInfos(Tour tour) throws ExecutionException, InterruptedException {
-        DocumentSnapshot userToursDataDoc =
-                findRawDocumentById(Tour.class, tour.getId());
-        List<Object> tourStopInfosData = (List<Object>) userToursDataDoc.get("stopInfos");
+        Map<String, Map<String, Object>> tourStopInfosData =
+                findAllDocumentsInSubCollection(tour.getId(), TOUR_STOP_INFOS_COLLECTION_NAME);
         List<TourStopInfo> tourStopInfos = new ArrayList<>();
-        for (Object tourStopInfoData : tourStopInfosData) {
-            tourStopInfos.add(objectMapper.convertValue(tourStopInfoData, TourStopInfo.class));
+        // TODO: Order by key.
+        for (String key : tourStopInfosData.keySet()) {
+            tourStopInfos.add(objectMapper.convertValue(tourStopInfosData.get(key), TourStopInfo.class));
         }
         return tourStopInfos;
+    }
+
+    public List<TourTastingInfo> getTourTastingInfos(Tour tour) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> tourTastingInfosData =
+                findAllDocumentsInSubCollection(tour.getId(), TOUR_TASTING_INFOS_COLLECTION_NAME);
+        // TODO: Order by key.
+        List<TourTastingInfo> tourTastingInfos = new ArrayList<>();
+        for (String key : tourTastingInfosData.keySet()) {
+            tourTastingInfos.add(objectMapper.convertValue(tourTastingInfosData.get(key), TourTastingInfo.class));
+        }
+        return tourTastingInfos;
     }
 }

@@ -31,16 +31,6 @@ public abstract class FirestoreRepository<T> {
         return objectMapper.convertValue(document.getData(), classT);
     }
 
-    protected DocumentSnapshot findRawDocumentById(Class<T> classT, String id) throws ExecutionException, InterruptedException, NoSuchElementException {
-        DocumentReference documentReference = firestore.collection(collection).document(id);
-        DocumentSnapshot document = documentReference.get().get();
-        if (!document.exists()) {
-            throw new NoSuchElementException("Document with ID " + id + " was not found");
-        }
-
-        return document;
-    }
-
     protected Map<String, Map<String, Object>> findAllDocumentsInSubCollection(String id, String subCollection) throws ExecutionException, InterruptedException, NoSuchElementException {
         Iterable<DocumentReference> it = firestore.collection(collection).document(id).collection(subCollection).listDocuments();
 
@@ -56,11 +46,6 @@ public abstract class FirestoreRepository<T> {
         return ret;
     }
 
-    protected void save(T entity, String id) {
-        Map<String, Object> map = objectMapper.convertValue(entity, Map.class);
-        firestore.collection(collection).document(id).set(map);
-    }
-
     protected Map<String, T> findAllDocuments(Class<T> classT) throws ExecutionException, InterruptedException {
         Iterable<DocumentReference> it = firestore.collection(collection).listDocuments();
 
@@ -74,5 +59,14 @@ public abstract class FirestoreRepository<T> {
         }
 
         return ret;
+    }
+
+    protected void save(T entity, String id) {
+        Map<String, Object> map = objectMapper.convertValue(entity, Map.class);
+        firestore.collection(collection).document(id).set(map);
+    }
+
+    protected void saveInSubCollection(String id, String subCollection, String subId, Map<String, Object> map) {
+        firestore.collection(collection).document(id).collection(subCollection).document(subId).set(map);
     }
 }

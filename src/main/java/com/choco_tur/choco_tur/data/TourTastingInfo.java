@@ -8,11 +8,12 @@ import java.util.Map;
 
 @Getter
 @Setter
-public class TourStopInfo {
+public class TourTastingInfo {
     @ElementCollection
     private Map<String, String> titles;
 
-    private double latitude;
+    @ElementCollection
+    private Map<String, String> descriptions;
 
-    private double longitude;
+    private String imageId;
 }
