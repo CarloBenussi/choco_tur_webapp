@@ -1,4 +1,4 @@
-FROM openjdk:17-alpine
+FROM maven:latest
 
 WORKDIR /app
 
@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 
 # Build the JAR using Maven
-RUN ./mvnw clean package
+RUN mvn clean package
 
 # Copy the generated JAR
 COPY target/*.jar app.jar
