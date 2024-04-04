@@ -15,11 +15,8 @@ COPY . .
 # Build the JAR using Maven
 RUN mvn clean package
 
-# Copy the generated JAR
-COPY /app/target/*.jar app.jar
-
 # Expose the port where your application listens (usually 8080)
 EXPOSE 8080
 
 # Define the entrypoint to run your application
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "target/choco_tur-0.0.1-SNAPSHOT.jar"]
