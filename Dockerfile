@@ -1,7 +1,5 @@
 FROM maven:latest
 
-ENV HTTPS_KEYSTORE_ALIAS placeholder
-ENV HTTPS_KEYSTORE_PASSWORD placeholder
 ENV CHOCOTUR_EMAIL_PASSWORD placeholder
 ENV GOOGLE_CLIENT_ID placeholder
 ENV SPRING_JWT_SECRET_KEY placeholder
