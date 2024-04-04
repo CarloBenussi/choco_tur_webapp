@@ -11,13 +11,15 @@ public class OnRegistrationCompleteEvent extends ApplicationEvent {
     private String appUrl;
     private Locale locale;
     private User user;
+    private String registrationConfirmationNumber;
 
     public OnRegistrationCompleteEvent(
-            User user, Locale locale, String appUrl) {
+            User user, Locale locale, String appUrl, String number) {
         super(user);
 
         this.user = user;
         this.locale = locale;
         this.appUrl = appUrl;
+        this.registrationConfirmationNumber = number;
     }
 }

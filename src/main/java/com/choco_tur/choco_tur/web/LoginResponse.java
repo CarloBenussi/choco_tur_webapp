@@ -22,4 +22,6 @@ public class LoginResponse {
 
     @Min(0)
     private long refreshTokenExpiresIn;
+
+    private double quizScore;
 }

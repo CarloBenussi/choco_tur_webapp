@@ -21,9 +21,9 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
 
     private void confirmRegistration(OnRegistrationCompleteEvent event) {
         User user = event.getUser();
-        String number = CommonUtils.getSixDigitNumberSequence();
+        String number = event.getRegistrationConfirmationNumber();
         userService.saveEmailVerificationNumber(user, number);
 
-        userService.sendEmailVerificationNumber(user, number, event.getLocale());
+        userService.sendEmailVerificationNumber(user.getEmail(), number, event.getLocale());
     }
 }

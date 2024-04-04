@@ -11,13 +11,10 @@ import java.sql.Timestamp;
 @Getter
 @Setter
 public class UserTourInfo {
-    @NotEmpty
     private String purchaseDate;
 
-    @NotEmpty
     private String expiryDate;
 
-    @Min(0)
     private Integer purchaseMethod;
 
     @NotEmpty

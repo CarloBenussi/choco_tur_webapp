@@ -72,12 +72,11 @@ public class UserController {
         User registered = userService.registerNewUser(userDto);
 
         String appUrl = request.getContextPath();
+        String number = CommonUtils.getSixDigitNumberSequence();
         applicationEventPublisher.publishEvent(new OnRegistrationCompleteEvent(registered,
-                request.getLocale(), appUrl));
+                request.getLocale(), appUrl, number));
 
-        String responseMessage = messageSource.getMessage("registrationSuccess",
-                null, request.getLocale());
-        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+        return new ResponseEntity<>(number, HttpStatus.OK);
     }
 
     @PostMapping("/signInWithExtProvider")
@@ -91,7 +90,7 @@ public class UserController {
             // Authenticate user as well.
             // TODO: Here the 'authenticate' call will check that the hash of the passed password
             // matches the hash of the password saved for this user. So we need to generate a
-            // temporary password for the user, save it (hashed) and return it on 'signInUserWithExtProvider'
+            // temporary password for the user, save it (hashed) and return it on 'signInWithExtProvider'
             // so we can pass it here? Or maybe we can simply skip this step and generate the jwt token
             // directly?
             Authentication authenticationRequest =
@@ -100,6 +99,7 @@ public class UserController {
             this.authenticationManager.authenticate(authenticationRequest);
             // TODO: Handle DisabledException, LockedException, BadCredentialsException
 
+            User user = userService.getUserByEmail(userDto.getEmail());
             String jwtAccessToken = jwtService.generateAccessToken(userDto.getEmail());
             String jwtRefreshToken = jwtService.generateRefreshToken(userDto.getEmail());
 
@@ -108,6 +108,7 @@ public class UserController {
                     .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                     .refreshToken(jwtRefreshToken)
                     .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
+                    .quizScore(user.getQuizScore())
                     .build();
 
             return ResponseEntity.ok(loginResponse);
@@ -147,6 +148,7 @@ public class UserController {
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
                 .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
+                .quizScore(user.getQuizScore())
                 .build();
 
         return ResponseEntity.ok(loginResponse);
@@ -166,11 +168,12 @@ public class UserController {
             return new ResponseEntity<>("User with email " + email + " has different verification number", HttpStatus.BAD_REQUEST);
         }
 
+        String appUrl = request.getContextPath();
         String newNumber = CommonUtils.getSixDigitNumberSequence();
-        userService.saveEmailVerificationNumber(user, newNumber);
-        userService.sendEmailVerificationNumber(user, newNumber, request.getLocale());
+        applicationEventPublisher.publishEvent(new OnRegistrationCompleteEvent(user,
+                request.getLocale(), appUrl, newNumber));
 
-        return new ResponseEntity<>("Verification email resent", HttpStatus.OK);
+        return new ResponseEntity<>(number, HttpStatus.OK);
     }
 
     @PostMapping("/resetPassword")
@@ -183,56 +186,51 @@ public class UserController {
             return new ResponseEntity<>("No user found with email " + email, HttpStatus.BAD_REQUEST);
         }
 
-        String token = UUID.randomUUID().toString();
-        userService.savePasswordResetToken(user, token);
+        String number = CommonUtils.getSixDigitNumberSequence();
+        userService.savePasswordResetNumber(user, number);
+        userService.sendPasswordResetNumber(user.getEmail(), number, request.getLocale());
 
-        userService.sendPasswordResetToken(user, token, request.getContextPath(), request.getLocale());
-
-        return new ResponseEntity<>("Password reset email resent", HttpStatus.OK);
+        return new ResponseEntity<>("Password reset number sent", HttpStatus.OK);
     }
 
-    @GetMapping("/changePassword")
+    @GetMapping("/resetPasswordTest")
     public ResponseEntity<String> changePassword(
         @RequestParam("email")String email,
-        @RequestParam("token")String token
+        @RequestParam("number")String number
     ) throws ExecutionException, InterruptedException {
         User user = userService.getUserByEmail(email);
         if (user == null) {
             return new ResponseEntity<>("No user found with email " + email, HttpStatus.BAD_REQUEST);
         }
-        if (!user.getPasswordResetToken().equals(token)) {
-            return new ResponseEntity<>("User with email " + email + " has different password reset token", HttpStatus.BAD_REQUEST);
+        if (!user.getPasswordResetNumber().equals(number)) {
+            return new ResponseEntity<>("User with email " + email + " has different verification number", HttpStatus.BAD_REQUEST);
         }
 
-        Calendar calendar = Calendar.getInstance();
-        if (user.getPasswordResetTokenGenerationTime() - calendar.getTime().getTime() <= 0) {
-            return new ResponseEntity<>("Password reset token expired", HttpStatus.BAD_REQUEST);
-        }
-
-        // TODO: Redirect to html page for password reset.
-        return new ResponseEntity<>("Reset password please", HttpStatus.OK);
+        return new ResponseEntity<>("OK, proceed", HttpStatus.OK);
     }
 
-    @PostMapping("/savePassword")
+    @PostMapping("/changePassword")
     public ResponseEntity<String> savePassword(
         @RequestParam("email")String email,
-        @RequestParam("token")String token,
+        @RequestParam("token")String number,
         @RequestParam("password")String newPassword
     ) throws ExecutionException, InterruptedException {
         User user = userService.getUserByEmail(email);
         if (user == null) {
             return new ResponseEntity<>("No user found with email " + email, HttpStatus.BAD_REQUEST);
         }
-        if (!user.getPasswordResetToken().equals(token)) {
-            return new ResponseEntity<>("User with email " + email + " has different password reset token", HttpStatus.BAD_REQUEST);
+        if (!user.getPasswordResetNumber().equals(number)) {
+            return new ResponseEntity<>("User with email " + email + " has different password reset number", HttpStatus.BAD_REQUEST);
         }
 
         Calendar calendar = Calendar.getInstance();
-        if (user.getPasswordResetTokenGenerationTime() - calendar.getTime().getTime() <= 0) {
-            return new ResponseEntity<>("Password reset token expired", HttpStatus.BAD_REQUEST);
+        if (user.getPasswordResetNumberGenerationTime() - calendar.getTime().getTime() <= 0) {
+            return new ResponseEntity<>("Password reset number expired", HttpStatus.BAD_REQUEST);
         }
 
         user.setPassword(newPassword);
+        user.setPasswordResetNumber(null);
+        user.setPasswordResetNumberGenerationTime(-1);
         userService.saveUser(user);
 
         return new ResponseEntity<>("Password reset!", HttpStatus.OK);
@@ -255,6 +253,7 @@ public class UserController {
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
                 .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
+                .quizScore(user.getQuizScore())
                 .build();
 
         return ResponseEntity.ok(loginResponse);
@@ -268,7 +267,16 @@ public class UserController {
 
         User user = userService.getUserByEmail(userLoginWithTokenDto.getEmail());
 
-        return ResponseEntity.ok("Login with token successful!");
+        String jwtRefreshToken = jwtService.generateRefreshToken(userLoginWithTokenDto.getEmail());
+        LoginResponse loginResponse = LoginResponse.builder()
+                .accessToken(userLoginWithTokenDto.getAccessToken())
+                .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
+                .refreshToken(jwtRefreshToken)
+                .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
+                .quizScore(user.getQuizScore())
+                .build();
+
+        return ResponseEntity.ok(loginResponse);
     }
 
     @GetMapping("/refreshToken")

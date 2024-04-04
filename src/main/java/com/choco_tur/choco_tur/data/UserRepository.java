@@ -64,11 +64,19 @@ public class UserRepository extends FirestoreRepository<User> {
     public void saveUserTour(User user, UserTourInfo userTourInfo) throws ExecutionException, InterruptedException {
         Map<String, Map<String, Object>> userToursData =
                 findAllDocumentsInSubCollection(user.getEmail(), USER_TOURS_SUBCOLLECTION_NAME);
+
+        boolean updated = false;
         for (String key : userToursData.keySet()) {
             if (userTourInfo.getId().equals(userToursData.get(key).get("id"))) {
                 saveInSubCollection(user.getEmail(), USER_TOURS_SUBCOLLECTION_NAME, key,
                         objectMapper.convertValue(userTourInfo, Map.class));
+                updated = true;
             }
+        }
+
+        if (!updated) {
+            addInSubCollection(user.getEmail(), USER_TOURS_SUBCOLLECTION_NAME,
+                    objectMapper.convertValue(userTourInfo, Map.class));
         }
     }
 }

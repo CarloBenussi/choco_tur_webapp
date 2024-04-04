@@ -69,4 +69,8 @@ public abstract class FirestoreRepository<T> {
     protected void saveInSubCollection(String id, String subCollection, String subId, Map<String, Object> map) {
         firestore.collection(collection).document(id).collection(subCollection).document(subId).set(map);
     }
+
+    protected void addInSubCollection(String id, String subCollection, Map<String, Object> map) {
+        firestore.collection(collection).document(id).collection(subCollection).add(map);
+    }
 }

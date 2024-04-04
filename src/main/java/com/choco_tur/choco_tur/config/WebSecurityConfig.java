@@ -56,6 +56,8 @@ public class WebSecurityConfig {
             .permitAll()
             .requestMatchers("/tours/**")
             .authenticated()
+            .requestMatchers("/quiz/**")
+            .authenticated()
             .requestMatchers("/business/**")
             .hasRole("BUSINESS")
             .and()

@@ -3,6 +3,7 @@ package com.choco_tur.choco_tur.web;
 import com.choco_tur.choco_tur.data.*;
 import com.choco_tur.choco_tur.service.TourService;
 import com.choco_tur.choco_tur.service.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -55,12 +56,20 @@ public class TourController {
 
         User user = userService.getUserByEmail(userDetails.getUsername());
         UserTourInfo userTourInfo = userService.getUserTourInfo(user, tourId);
-        if (userTourInfo == null) {
-            return new ResponseEntity<>("No user tour found with id " + tourId, HttpStatus.BAD_REQUEST);
-        }
+        if (userTourInfo != null) {
+            if (userTourInfo.isActive()) {
+                return new ResponseEntity<>("User tour " + tourId + " is already active", HttpStatus.OK);
+            }
+        } else {
+            Tour tour = tourService.getTour(tourId);
+            if (tour == null) {
+                return new ResponseEntity<>("Tour " + tourId + " does not exist", HttpStatus.BAD_REQUEST);
+            }
 
-        if (userTourInfo.isActive()) {
-            return new ResponseEntity<>("User tour " + tourId + " is already active", HttpStatus.OK);
+            userTourInfo = new UserTourInfo();
+            userTourInfo.setId(tour.getId());
+            userTourInfo.setTitle(tour.getTitle());
+            userTourInfo.setProgress(0);
         }
 
         userTourInfo.setActive(true);
@@ -209,7 +218,7 @@ public class TourController {
     }
 
     @GetMapping("/tourStopStories")
-    public ResponseEntity<?> getTourStopsStories(@RequestParam String stopId) throws ExecutionException, InterruptedException {
+    public ResponseEntity<?> getTourStopsStories(@RequestParam String stopId) throws ExecutionException, InterruptedException, JsonProcessingException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!authentication.isAuthenticated()) {
             return new ResponseEntity<>("User is not authenticated", HttpStatus.UNAUTHORIZED);

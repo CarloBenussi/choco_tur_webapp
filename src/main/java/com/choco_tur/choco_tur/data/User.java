@@ -22,13 +22,15 @@ public class User {
 
   private boolean emailValidationStatus = false;
 
-  private String passwordResetToken;
+  private String passwordResetNumber;
 
-  private long passwordResetTokenGenerationTime = -1;
+  private long passwordResetNumberGenerationTime = -1;
 
   private Integer externalProviderId = -1;
 
   private String dateOfBirth;
 
   private String nationality;
+
+  private double quizScore;
 }

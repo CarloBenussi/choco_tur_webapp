@@ -1,5 +1,6 @@
 package com.choco_tur.choco_tur.data;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.firestore.Firestore;
 import org.springframework.stereotype.Repository;
@@ -26,14 +27,14 @@ public class TourStopRepository extends FirestoreRepository<TourStop> {
         return tourStop;
     }
 
-    public List<TourStopStory> getTourStopStories(String stopId) throws ExecutionException, InterruptedException {
+    public List<TourStopStory> getTourStopStories(String stopId) throws ExecutionException, InterruptedException, JsonProcessingException {
         Map<String, Map<String, Object>> tourStopStoriesData = findAllDocumentsInSubCollection(stopId, TOUR_STOP_STORY_COLLECTION_NAME);
         List<TourStopStory> tourStopStories = new ArrayList<>();
         for (String key : tourStopStoriesData.keySet()) {
             TourStopStory tourStopStory = new TourStopStory();
             tourStopStory.setIndex(Integer.parseInt(key));
-            tourStopStory.setType((Integer) tourStopStoriesData.get(key).get("type"));
-            tourStopStory.setContentJson(tourStopStoriesData.get(key).toString());
+            tourStopStory.setType(Integer.parseInt(tourStopStoriesData.get(key).get("type").toString()));
+            tourStopStory.setContentJson(objectMapper.writeValueAsString(tourStopStoriesData.get(key)));
             tourStopStories.add(tourStopStory);
         }
         return tourStopStories;

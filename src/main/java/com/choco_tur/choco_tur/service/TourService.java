@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import com.choco_tur.choco_tur.data.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,7 +48,7 @@ public class TourService {
     return stops;
   }
 
-  public List<TourStopStory> getTourStopStories(String stopId) throws ExecutionException, InterruptedException {
+  public List<TourStopStory> getTourStopStories(String stopId) throws ExecutionException, InterruptedException, JsonProcessingException {
     return tourStopRepository.getTourStopStories(stopId);
   }
 }

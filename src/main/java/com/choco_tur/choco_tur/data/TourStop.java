@@ -28,4 +28,7 @@ public class TourStop {
 
     @NotEmpty
     private String imageId;
+
+    @NotEmpty
+    private String audioId;
 }

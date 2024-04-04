@@ -47,6 +47,8 @@ public class UserService {
         user.setDateOfBirth(userDto.getDateOfBirth());
         user.setNationality(userDto.getNationality());
 
+        // TODO: Add free tour as user tour.
+
         saveUser(user);
         return user;
     }
@@ -87,27 +89,37 @@ public class UserService {
         saveUser(user);
     }
 
-    public void sendEmailVerificationNumber(User user, String number, Locale locale) {
-        String recipientAddress = user.getEmail();
+    public void sendEmailVerificationNumber(String email, String number, Locale locale) {
         String subject = "Registration Confirmation";
         String message = messageSource.getMessage("registrationConfirmationEmail", null, locale);
 
-        SimpleMailMessage email = new SimpleMailMessage();
-        email.setTo(recipientAddress);
-        email.setSubject(subject);
-        email.setText(message + "\r\n" + number);
-        mailSender.send(email);
+        SimpleMailMessage emailMessage = new SimpleMailMessage();
+        emailMessage.setTo(email);
+        emailMessage.setSubject(subject);
+        emailMessage.setText(message + "\r\n" + number);
+        mailSender.send(emailMessage);
     }
 
-    public void savePasswordResetToken(User user, String token) {
+    public void savePasswordResetNumber(User user, String sequence) {
         // Calculate expiry date for token.
         Calendar cal = Calendar.getInstance();
         cal.setTime(new Timestamp(cal.getTime().getTime()));
         cal.add(Calendar.MINUTE, PASSWORD_RESET_TOKEN_EXPIRATION);
 
-        user.setPasswordResetTokenGenerationTime(cal.getTime().getTime());
-        user.setPasswordResetToken(token);
+        user.setPasswordResetNumberGenerationTime(cal.getTime().getTime());
+        user.setPasswordResetNumber(sequence);
         saveUser(user);
+    }
+
+    public void sendPasswordResetNumber(String email, String number, Locale locale) {
+        String subject = "Password Reset";
+        String message = messageSource.getMessage("passwordResetEmail", null, locale);
+
+        SimpleMailMessage emailMessage = new SimpleMailMessage();
+        emailMessage.setTo(email);
+        emailMessage.setSubject(subject);
+        emailMessage.setText(message + "\r\n" + number);
+        mailSender.send(emailMessage);
     }
 
     public void sendPasswordResetToken(User user, String token, String appUrl, Locale locale) {
