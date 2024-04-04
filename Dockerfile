@@ -16,7 +16,7 @@ COPY . .
 RUN mvn clean package
 
 # Copy the generated JAR
-COPY target/*.jar app.jar
+COPY /app/target/*.jar app.jar
 
 # Expose the port where your application listens (usually 8080)
 EXPOSE 8080
