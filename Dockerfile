@@ -1,6 +1,6 @@
-FROM openjdk:17-alpine  # Use a slim Java base image
+FROM openjdk:17-alpine
 
-WORKDIR /app  # Set working directory
+WORKDIR /app
 
 # Copy your project directory (replace with your actual directory structure)
 COPY . .
