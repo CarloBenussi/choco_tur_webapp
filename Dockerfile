@@ -6,7 +6,7 @@ WORKDIR /app
 COPY . .
 
 # Build the JAR using Maven
-RUN mvn clean package
+RUN ./mvnw clean package
 
 # Copy the generated JAR
 COPY target/*.jar app.jar
