@@ -6,10 +6,7 @@ import com.choco_tur.choco_tur.service.ExternalProviderService;
 import com.choco_tur.choco_tur.service.JwtService;
 import com.choco_tur.choco_tur.service.UserAlreadyExistAuthenticationException;
 import com.choco_tur.choco_tur.utils.CommonUtils;
-import com.choco_tur.choco_tur.web.dto.UserExtProviderSignInDto;
-import com.choco_tur.choco_tur.web.dto.UserLoginDto;
-import com.choco_tur.choco_tur.web.dto.UserLoginWithTokenDto;
-import com.choco_tur.choco_tur.web.dto.UserRegistrationDto;
+import com.choco_tur.choco_tur.web.dto.*;
 import com.nimbusds.oauth2.sdk.GeneralException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.ApplicationEventPublisher;
@@ -108,7 +105,6 @@ public class UserController {
                     .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                     .refreshToken(jwtRefreshToken)
                     .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
-                    .quizScore(user.getQuizScore())
                     .build();
 
             return ResponseEntity.ok(loginResponse);
@@ -148,7 +144,6 @@ public class UserController {
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
                 .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
-                .quizScore(user.getQuizScore())
                 .build();
 
         return ResponseEntity.ok(loginResponse);
@@ -178,7 +173,7 @@ public class UserController {
 
     @PostMapping("/resetPassword")
     public ResponseEntity<String> resetPassword(
-        @RequestParam("email")String email,
+        @RequestBody String email,
         HttpServletRequest request
     ) throws ExecutionException, InterruptedException {
         User user = userService.getUserByEmail(email);
@@ -211,16 +206,14 @@ public class UserController {
 
     @PostMapping("/changePassword")
     public ResponseEntity<String> savePassword(
-        @RequestParam("email")String email,
-        @RequestParam("token")String number,
-        @RequestParam("password")String newPassword
+            @Valid @RequestBody ChangePasswordDto changePasswordDto
     ) throws ExecutionException, InterruptedException {
-        User user = userService.getUserByEmail(email);
+        User user = userService.getUserByEmail(changePasswordDto.getEmail());
         if (user == null) {
-            return new ResponseEntity<>("No user found with email " + email, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("No user found with email " + changePasswordDto.getEmail(), HttpStatus.BAD_REQUEST);
         }
-        if (!user.getPasswordResetNumber().equals(number)) {
-            return new ResponseEntity<>("User with email " + email + " has different password reset number", HttpStatus.BAD_REQUEST);
+        if (!user.getPasswordResetNumber().equals(changePasswordDto.getPasswordRecoveryNumber())) {
+            return new ResponseEntity<>("User with email " + changePasswordDto.getEmail() + " has different password reset number", HttpStatus.BAD_REQUEST);
         }
 
         Calendar calendar = Calendar.getInstance();
@@ -228,7 +221,7 @@ public class UserController {
             return new ResponseEntity<>("Password reset number expired", HttpStatus.BAD_REQUEST);
         }
 
-        user.setPassword(newPassword);
+        user.setPassword(changePasswordDto.getPassword());
         user.setPasswordResetNumber(null);
         user.setPasswordResetNumberGenerationTime(-1);
         userService.saveUser(user);
@@ -244,8 +237,6 @@ public class UserController {
         this.authenticationManager.authenticate(authenticationRequest);
         // TODO: Handle DisabledException, LockedException
 
-        User user = userService.getUserByEmail(userLoginDto.getEmail());
-
         String jwtAccessToken = jwtService.generateAccessToken(userLoginDto.getEmail());
         String jwtRefreshToken = jwtService.generateRefreshToken(userLoginDto.getEmail());
         LoginResponse loginResponse = LoginResponse.builder()
@@ -253,7 +244,6 @@ public class UserController {
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
                 .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
-                .quizScore(user.getQuizScore())
                 .build();
 
         return ResponseEntity.ok(loginResponse);
@@ -273,7 +263,6 @@ public class UserController {
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
                 .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
-                .quizScore(user.getQuizScore())
                 .build();
 
         return ResponseEntity.ok(loginResponse);
@@ -290,9 +279,12 @@ public class UserController {
 
         // Regenerate new tokens.
         String jwtAccessToken = jwtService.generateAccessToken(email);
+        String jwtRefreshToken = jwtService.generateRefreshToken(email);
         LoginResponse loginResponse = LoginResponse.builder()
                 .accessToken(jwtAccessToken)
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
+                .refreshToken(jwtRefreshToken)
+                .refreshTokenExpiresIn(jwtService.getRefreshTokenExpirationTime())
                 .build();
 
         return ResponseEntity.ok(loginResponse);

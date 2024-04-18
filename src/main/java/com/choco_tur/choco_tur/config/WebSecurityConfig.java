@@ -1,7 +1,5 @@
 package com.choco_tur.choco_tur.config;
 
-import javax.sql.DataSource;
-
 import com.choco_tur.choco_tur.data.UserDetailsServiceImpl;
 import com.choco_tur.choco_tur.web.JwtAuthenticationFilter;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
@@ -21,8 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import java.io.*;
-import java.nio.charset.Charset;
 import java.util.Collections;
 
 @Configuration

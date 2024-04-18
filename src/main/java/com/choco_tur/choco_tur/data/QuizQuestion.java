@@ -9,15 +9,18 @@ import lombok.Setter;
 import java.util.List;
 import java.util.Map;
 
-@Entity
 @Getter @Setter
-public class Quiz {
-
+@Entity
+public class QuizQuestion {
     @Id
-    private String id;
+    private Integer index;
 
     @ElementCollection
-    private Map<String, String> intro;
+    private Map<String, String> question;
 
-    private Object questions;
+    private Object answers;
+
+    private Integer correctAnswerIndex;
+
+    private Object onAnswers;
 }

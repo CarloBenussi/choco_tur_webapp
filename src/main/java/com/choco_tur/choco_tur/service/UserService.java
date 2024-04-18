@@ -1,6 +1,7 @@
 package com.choco_tur.choco_tur.service;
 
 import com.choco_tur.choco_tur.data.User;
+import com.choco_tur.choco_tur.data.UserQuizInfo;
 import com.choco_tur.choco_tur.data.UserRepository;
 import com.choco_tur.choco_tur.data.UserTourInfo;
 import com.choco_tur.choco_tur.web.dto.UserExtProviderSignInDto;
@@ -153,11 +154,23 @@ public class UserService {
         return userRepository.getUserTour(user.getEmail(), tourId);
     }
 
+    public List<UserQuizInfo> getUserQuizInfos(User user) throws ExecutionException, InterruptedException {
+        return userRepository.getUserQuizs(user.getEmail());
+    }
+
+    public UserQuizInfo getUserQuizInfo(User user, String quizId) throws ExecutionException, InterruptedException {
+        return userRepository.getUserQuizInfo(user.getEmail(), quizId);
+    }
+
     public void saveUser(User user) {
         userRepository.save(user);
     }
 
     public void saveUserTour(User user, UserTourInfo userTourInfo) throws ExecutionException, InterruptedException {
         userRepository.saveUserTour(user, userTourInfo);
+    }
+
+    public void saveUserQuiz(User user, UserQuizInfo userQuizInfo) throws ExecutionException, InterruptedException {
+        userRepository.saveUserQuiz(user, userQuizInfo);
     }
 }

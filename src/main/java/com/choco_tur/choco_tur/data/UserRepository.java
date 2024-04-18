@@ -19,6 +19,7 @@ public class UserRepository extends FirestoreRepository<User> {
 
     static final String USERS_COLLECTION_NAME = "users";
     static final String USER_TOURS_SUBCOLLECTION_NAME = "tours";
+    static final String USER_QUIZ_SUBCOLLECTION_NAME = "quiz";
 
     private final ObjectMapper objectMapper;
     protected UserRepository(Firestore firestore, ObjectMapper objectMapper) {
@@ -57,6 +58,32 @@ public class UserRepository extends FirestoreRepository<User> {
         return null;
     }
 
+    public List<UserQuizInfo> getUserQuizs(String email) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userQuizsData =
+                findAllDocumentsInSubCollection(email, USER_QUIZ_SUBCOLLECTION_NAME);
+        List<UserQuizInfo> userQuizs = new ArrayList<>();
+        for (String key : userQuizsData.keySet()) {
+            UserQuizInfo userQuizInfo = objectMapper.convertValue(userQuizsData.get(key), UserQuizInfo.class);
+            userQuizInfo.setId(key);
+            userQuizs.add(userQuizInfo);
+        }
+        return userQuizs;
+    }
+
+    public UserQuizInfo getUserQuizInfo(String email, String quizId) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userQuizsData =
+                findAllDocumentsInSubCollection(email, USER_QUIZ_SUBCOLLECTION_NAME);
+        for (String key : userQuizsData.keySet()) {
+            if (quizId.equals(key)) {
+                UserQuizInfo userQuizInfo = objectMapper.convertValue(userQuizsData.get(key), UserQuizInfo.class);
+                userQuizInfo.setId(key);
+                return userQuizInfo;
+            }
+        }
+
+        return null;
+    }
+
     public void save(User user) {
         save(user, user.getEmail());
     }
@@ -77,6 +104,25 @@ public class UserRepository extends FirestoreRepository<User> {
         if (!updated) {
             addInSubCollection(user.getEmail(), USER_TOURS_SUBCOLLECTION_NAME,
                     objectMapper.convertValue(userTourInfo, Map.class));
+        }
+    }
+
+    public void saveUserQuiz(User user, UserQuizInfo userQuizInfo) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userQuizData =
+                findAllDocumentsInSubCollection(user.getEmail(), USER_QUIZ_SUBCOLLECTION_NAME);
+
+        boolean updated = false;
+        for (String key : userQuizData.keySet()) {
+            if (userQuizInfo.getId().equals(key)) {
+                saveInSubCollection(user.getEmail(), USER_QUIZ_SUBCOLLECTION_NAME, key,
+                        objectMapper.convertValue(userQuizInfo, Map.class));
+                updated = true;
+            }
+        }
+
+        if (!updated) {
+            addInSubCollection(user.getEmail(), USER_QUIZ_SUBCOLLECTION_NAME,
+                    objectMapper.convertValue(userQuizInfo, Map.class));
         }
     }
 }
