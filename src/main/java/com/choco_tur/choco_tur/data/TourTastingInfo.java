@@ -12,8 +12,5 @@ public class TourTastingInfo {
     @ElementCollection
     private Map<String, String> titles;
 
-    @ElementCollection
-    private Map<String, String> descriptions;
-
     private String imageId;
 }

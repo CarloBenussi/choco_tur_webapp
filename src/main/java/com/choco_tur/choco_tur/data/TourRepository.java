@@ -1,7 +1,6 @@
 package com.choco_tur.choco_tur.data;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 import org.springframework.stereotype.Repository;
 

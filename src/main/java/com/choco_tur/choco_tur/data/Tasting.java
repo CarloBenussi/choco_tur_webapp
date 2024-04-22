@@ -3,16 +3,15 @@ package com.choco_tur.choco_tur.data;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
-import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Map;
 
 @Entity
-@Getter
-@Setter
-public class TourStop {
+@Getter @Setter
+public class Tasting {
     @Id
     private String id;
 
@@ -22,16 +21,11 @@ public class TourStop {
     @ElementCollection
     private Map<String, String> descriptions;
 
-    private double latitude;
+    @ElementCollection
+    private Map<String, String> ingredients;
 
-    private double longitude;
-
-    @NotEmpty
     private String imageId;
 
-    @NotEmpty
-    private String audioId;
-
-    @NotEmpty
-    private String tastingId;
+    @ElementCollection
+    private List<Double> reviews;
 }

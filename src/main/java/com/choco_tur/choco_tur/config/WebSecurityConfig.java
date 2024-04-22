@@ -54,6 +54,8 @@ public class WebSecurityConfig {
             .authenticated()
             .requestMatchers("/quiz/**")
             .authenticated()
+            .requestMatchers("/tastings/**")
+            .authenticated()
             .requestMatchers("/business/**")
             .hasRole("BUSINESS")
             .and()

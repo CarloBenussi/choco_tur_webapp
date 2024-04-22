@@ -20,6 +20,7 @@ public class UserRepository extends FirestoreRepository<User> {
     static final String USERS_COLLECTION_NAME = "users";
     static final String USER_TOURS_SUBCOLLECTION_NAME = "tours";
     static final String USER_QUIZ_SUBCOLLECTION_NAME = "quiz";
+    static final String USER_TASTINGS_SUBCOLLECTION_NAME = "tastings";
 
     private final ObjectMapper objectMapper;
     protected UserRepository(Firestore firestore, ObjectMapper objectMapper) {
@@ -63,9 +64,7 @@ public class UserRepository extends FirestoreRepository<User> {
                 findAllDocumentsInSubCollection(email, USER_QUIZ_SUBCOLLECTION_NAME);
         List<UserQuizInfo> userQuizs = new ArrayList<>();
         for (String key : userQuizsData.keySet()) {
-            UserQuizInfo userQuizInfo = objectMapper.convertValue(userQuizsData.get(key), UserQuizInfo.class);
-            userQuizInfo.setId(key);
-            userQuizs.add(userQuizInfo);
+            userQuizs.add(objectMapper.convertValue(userQuizsData.get(key), UserQuizInfo.class));
         }
         return userQuizs;
     }
@@ -74,10 +73,30 @@ public class UserRepository extends FirestoreRepository<User> {
         Map<String, Map<String, Object>> userQuizsData =
                 findAllDocumentsInSubCollection(email, USER_QUIZ_SUBCOLLECTION_NAME);
         for (String key : userQuizsData.keySet()) {
-            if (quizId.equals(key)) {
-                UserQuizInfo userQuizInfo = objectMapper.convertValue(userQuizsData.get(key), UserQuizInfo.class);
-                userQuizInfo.setId(key);
-                return userQuizInfo;
+            if (quizId.equals(userQuizsData.get(key).get("id"))) {
+                return objectMapper.convertValue(userQuizsData.get(key), UserQuizInfo.class);
+            }
+        }
+
+        return null;
+    }
+
+    public List<UserTastingInfo> getUserTastings(String email) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userTastingsData =
+                findAllDocumentsInSubCollection(email, USER_TASTINGS_SUBCOLLECTION_NAME);
+        List<UserTastingInfo> userTastings = new ArrayList<>();
+        for (String key : userTastingsData.keySet()) {
+            userTastings.add(objectMapper.convertValue(userTastingsData.get(key), UserTastingInfo.class));
+        }
+        return userTastings;
+    }
+
+    public UserTastingInfo getUserTasting(String email, String tastingId) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userTastingsData =
+                findAllDocumentsInSubCollection(email, USER_TASTINGS_SUBCOLLECTION_NAME);
+        for (String key : userTastingsData.keySet()) {
+            if (tastingId.equals(userTastingsData.get(key).get("id"))) {
+                return objectMapper.convertValue(userTastingsData.get(key), UserTastingInfo.class);
             }
         }
 
@@ -113,7 +132,7 @@ public class UserRepository extends FirestoreRepository<User> {
 
         boolean updated = false;
         for (String key : userQuizData.keySet()) {
-            if (userQuizInfo.getId().equals(key)) {
+            if (userQuizInfo.getId().equals(userQuizData.get(key).get("id"))) {
                 saveInSubCollection(user.getEmail(), USER_QUIZ_SUBCOLLECTION_NAME, key,
                         objectMapper.convertValue(userQuizInfo, Map.class));
                 updated = true;
@@ -123,6 +142,25 @@ public class UserRepository extends FirestoreRepository<User> {
         if (!updated) {
             addInSubCollection(user.getEmail(), USER_QUIZ_SUBCOLLECTION_NAME,
                     objectMapper.convertValue(userQuizInfo, Map.class));
+        }
+    }
+
+    public void saveUserTasting(User user, UserTastingInfo userTastingInfo) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userTastingsData =
+                findAllDocumentsInSubCollection(user.getEmail(), USER_TASTINGS_SUBCOLLECTION_NAME);
+
+        boolean updated = false;
+        for (String key : userTastingsData.keySet()) {
+            if (userTastingInfo.getId().equals(userTastingsData.get(key).get("id"))) {
+                saveInSubCollection(user.getEmail(), USER_TASTINGS_SUBCOLLECTION_NAME, key,
+                        objectMapper.convertValue(userTastingInfo, Map.class));
+                updated = true;
+            }
+        }
+
+        if (!updated) {
+            addInSubCollection(user.getEmail(), USER_TASTINGS_SUBCOLLECTION_NAME,
+                    objectMapper.convertValue(userTastingInfo, Map.class));
         }
     }
 }

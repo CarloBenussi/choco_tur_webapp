@@ -1,7 +1,5 @@
 package com.choco_tur.choco_tur.web.dto;
 
-import com.choco_tur.choco_tur.utils.ValidEmail;
-import com.choco_tur.choco_tur.utils.ValidPassword;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;

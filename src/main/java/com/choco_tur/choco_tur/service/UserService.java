@@ -1,9 +1,6 @@
 package com.choco_tur.choco_tur.service;
 
-import com.choco_tur.choco_tur.data.User;
-import com.choco_tur.choco_tur.data.UserQuizInfo;
-import com.choco_tur.choco_tur.data.UserRepository;
-import com.choco_tur.choco_tur.data.UserTourInfo;
+import com.choco_tur.choco_tur.data.*;
 import com.choco_tur.choco_tur.web.dto.UserExtProviderSignInDto;
 import com.choco_tur.choco_tur.web.dto.UserRegistrationDto;
 import org.springframework.context.MessageSource;
@@ -162,6 +159,14 @@ public class UserService {
         return userRepository.getUserQuizInfo(user.getEmail(), quizId);
     }
 
+    public List<UserTastingInfo> getUserTastingInfos(User user) throws ExecutionException, InterruptedException {
+        return userRepository.getUserTastings(user.getEmail());
+    }
+
+    public UserTastingInfo getUserTastingInfo(User user, String tastingId) throws ExecutionException, InterruptedException {
+        return userRepository.getUserTasting(user.getEmail(), tastingId);
+    }
+
     public void saveUser(User user) {
         userRepository.save(user);
     }
@@ -172,5 +177,9 @@ public class UserService {
 
     public void saveUserQuiz(User user, UserQuizInfo userQuizInfo) throws ExecutionException, InterruptedException {
         userRepository.saveUserQuiz(user, userQuizInfo);
+    }
+
+    public void saveUserTasting(User user, UserTastingInfo userTastingInfo) throws ExecutionException, InterruptedException {
+        userRepository.saveUserTasting(user, userTastingInfo);
     }
 }
