@@ -252,7 +252,7 @@ public class UserController {
     @PostMapping("/loginWithToken")
     public ResponseEntity<?> loginWithToken(@RequestBody UserLoginWithTokenDto userLoginWithTokenDto) throws ExecutionException, InterruptedException {
         if (!jwtService.isTokenValid(userLoginWithTokenDto.getAccessToken(), userLoginWithTokenDto.getEmail())) {
-            return new ResponseEntity<>("Token expired.", HttpStatus.UNAUTHORIZED);
+            return new ResponseEntity<>("Token expired", HttpStatus.UNAUTHORIZED);
         }
 
         User user = userService.getUserByEmail(userLoginWithTokenDto.getEmail());
