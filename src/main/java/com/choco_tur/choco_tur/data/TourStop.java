@@ -9,6 +9,8 @@ import lombok.Setter;
 
 import java.util.Map;
 
+import org.hibernate.annotations.ColumnDefault;
+
 @Entity
 @Getter
 @Setter
@@ -34,4 +36,6 @@ public class TourStop {
 
     @NotEmpty
     private String tastingId;
+
+    private Integer optionalGroup;
 }
