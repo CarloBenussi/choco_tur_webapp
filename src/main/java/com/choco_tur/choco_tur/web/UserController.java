@@ -16,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import com.choco_tur.choco_tur.service.UserService;
@@ -95,6 +97,8 @@ public class UserController {
                             userDto.getEmail(), null);
             this.authenticationManager.authenticate(authenticationRequest);
             // TODO: Handle DisabledException, LockedException, BadCredentialsException
+
+            // TODO: registerNewUser?
 
             User user = userService.getUserByEmail(userDto.getEmail());
             String jwtAccessToken = jwtService.generateAccessToken(userDto.getEmail());
@@ -288,5 +292,51 @@ public class UserController {
                 .build();
 
         return ResponseEntity.ok(loginResponse);
+    }
+
+    @GetMapping("/info/getCoins")
+    public ResponseEntity<?> getCoins() throws ExecutionException, InterruptedException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!authentication.isAuthenticated()) {
+            return new ResponseEntity<>("User is not authenticated", HttpStatus.UNAUTHORIZED);
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        User user = userService.getUserByEmail(userDetails.getUsername());
+
+        return ResponseEntity.ok(user.getCollectedCoins());
+    }
+
+    @PostMapping("/info/addCoins")
+    public ResponseEntity<?> addCoins(@RequestBody int coins) throws ExecutionException, InterruptedException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!authentication.isAuthenticated()) {
+            return new ResponseEntity<>("User is not authenticated", HttpStatus.UNAUTHORIZED);
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        User user = userService.getUserByEmail(userDetails.getUsername());
+        user.setCollectedCoins(user.getCollectedCoins() + coins);
+        userService.saveUser(user);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/info/removeCoins")
+    public ResponseEntity<?> removeCoins(@RequestBody int coins) throws ExecutionException, InterruptedException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!authentication.isAuthenticated()) {
+            return new ResponseEntity<>("User is not authenticated", HttpStatus.UNAUTHORIZED);
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        User user = userService.getUserByEmail(userDetails.getUsername());
+        user.setCollectedCoins(user.getCollectedCoins() - coins);
+        userService.saveUser(user);
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

@@ -44,8 +44,7 @@ public class UserService {
         user.setPassword(encoder.encode(userDto.getPassword()));
         user.setDateOfBirth(userDto.getDateOfBirth());
         user.setNationality(userDto.getNationality());
-
-        // TODO: Add free tour as user tour.
+        user.setCollectedCoins(0);
 
         saveUser(user);
         return user;

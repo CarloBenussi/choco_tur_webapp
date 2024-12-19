@@ -31,4 +31,6 @@ public class User {
   private String dateOfBirth;
 
   private String nationality;
+
+  private int collectedCoins;
 }
