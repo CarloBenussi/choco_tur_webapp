@@ -19,8 +19,9 @@ public class UserRepository extends FirestoreRepository<User> {
 
     static final String USERS_COLLECTION_NAME = "users";
     static final String USER_TOURS_SUBCOLLECTION_NAME = "tours";
-    static final String USER_QUIZ_SUBCOLLECTION_NAME = "quiz";
+    static final String USER_QUIZS_SUBCOLLECTION_NAME = "quizs";
     static final String USER_TASTINGS_SUBCOLLECTION_NAME = "tastings";
+    static final String USER_ANSWERS_SUBCOLLECTION_NAME = "answers";
 
     private final ObjectMapper objectMapper;
     protected UserRepository(Firestore firestore, ObjectMapper objectMapper) {
@@ -51,7 +52,7 @@ public class UserRepository extends FirestoreRepository<User> {
         Map<String, Map<String, Object>> userToursData =
                 findAllDocumentsInSubCollection(email, USER_TOURS_SUBCOLLECTION_NAME);
         for (String key : userToursData.keySet()) {
-            if (tourId.equals(userToursData.get(key).get("id"))) {
+            if (tourId.equals(key)) {
                 return objectMapper.convertValue(userToursData.get(key), UserTourInfo.class);
             }
         }
@@ -61,7 +62,7 @@ public class UserRepository extends FirestoreRepository<User> {
 
     public List<UserQuizInfo> getUserQuizs(String email) throws ExecutionException, InterruptedException {
         Map<String, Map<String, Object>> userQuizsData =
-                findAllDocumentsInSubCollection(email, USER_QUIZ_SUBCOLLECTION_NAME);
+                findAllDocumentsInSubCollection(email, USER_QUIZS_SUBCOLLECTION_NAME);
         List<UserQuizInfo> userQuizs = new ArrayList<>();
         for (String key : userQuizsData.keySet()) {
             userQuizs.add(objectMapper.convertValue(userQuizsData.get(key), UserQuizInfo.class));
@@ -71,9 +72,9 @@ public class UserRepository extends FirestoreRepository<User> {
 
     public UserQuizInfo getUserQuizInfo(String email, String quizId) throws ExecutionException, InterruptedException {
         Map<String, Map<String, Object>> userQuizsData =
-                findAllDocumentsInSubCollection(email, USER_QUIZ_SUBCOLLECTION_NAME);
+                findAllDocumentsInSubCollection(email, USER_QUIZS_SUBCOLLECTION_NAME);
         for (String key : userQuizsData.keySet()) {
-            if (quizId.equals(userQuizsData.get(key).get("id"))) {
+            if (quizId.equals(key)) {
                 return objectMapper.convertValue(userQuizsData.get(key), UserQuizInfo.class);
             }
         }
@@ -95,8 +96,30 @@ public class UserRepository extends FirestoreRepository<User> {
         Map<String, Map<String, Object>> userTastingsData =
                 findAllDocumentsInSubCollection(email, USER_TASTINGS_SUBCOLLECTION_NAME);
         for (String key : userTastingsData.keySet()) {
-            if (tastingId.equals(userTastingsData.get(key).get("id"))) {
+            if (tastingId.equals(key)) {
                 return objectMapper.convertValue(userTastingsData.get(key), UserTastingInfo.class);
+            }
+        }
+
+        return null;
+    }
+
+    public List<UserAnswerInfo> getUserAnswers(String email) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userAnswersData =
+                findAllDocumentsInSubCollection(email, USER_ANSWERS_SUBCOLLECTION_NAME);
+        List<UserAnswerInfo> userAnswers = new ArrayList<>();
+        for (String key : userAnswersData.keySet()) {
+            userAnswers.add(objectMapper.convertValue(userAnswersData.get(key), UserAnswerInfo.class));
+        }
+        return userAnswers;
+    }
+
+    public UserAnswerInfo getUserAnswer(String email, String answerId) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userAnswersData =
+                findAllDocumentsInSubCollection(email, USER_ANSWERS_SUBCOLLECTION_NAME);
+        for (String key : userAnswersData.keySet()) {
+            if (answerId.equals(key)) {
+                return objectMapper.convertValue(userAnswersData.get(key), UserAnswerInfo.class);
             }
         }
 
@@ -113,7 +136,7 @@ public class UserRepository extends FirestoreRepository<User> {
 
         boolean updated = false;
         for (String key : userToursData.keySet()) {
-            if (userTourInfo.getId().equals(userToursData.get(key).get("id"))) {
+            if (userTourInfo.getId().equals(key)) {
                 saveInSubCollection(user.getEmail(), USER_TOURS_SUBCOLLECTION_NAME, key,
                         objectMapper.convertValue(userTourInfo, Map.class));
                 updated = true;
@@ -121,26 +144,26 @@ public class UserRepository extends FirestoreRepository<User> {
         }
 
         if (!updated) {
-            addInSubCollection(user.getEmail(), USER_TOURS_SUBCOLLECTION_NAME,
+            addInSubCollection(user.getEmail(), USER_TOURS_SUBCOLLECTION_NAME, userTourInfo.getId(),
                     objectMapper.convertValue(userTourInfo, Map.class));
         }
     }
 
     public void saveUserQuiz(User user, UserQuizInfo userQuizInfo) throws ExecutionException, InterruptedException {
         Map<String, Map<String, Object>> userQuizData =
-                findAllDocumentsInSubCollection(user.getEmail(), USER_QUIZ_SUBCOLLECTION_NAME);
+                findAllDocumentsInSubCollection(user.getEmail(), USER_QUIZS_SUBCOLLECTION_NAME);
 
         boolean updated = false;
         for (String key : userQuizData.keySet()) {
-            if (userQuizInfo.getId().equals(userQuizData.get(key).get("id"))) {
-                saveInSubCollection(user.getEmail(), USER_QUIZ_SUBCOLLECTION_NAME, key,
+            if (userQuizInfo.getId().equals(key)) {
+                saveInSubCollection(user.getEmail(), USER_QUIZS_SUBCOLLECTION_NAME, key,
                         objectMapper.convertValue(userQuizInfo, Map.class));
                 updated = true;
             }
         }
 
         if (!updated) {
-            addInSubCollection(user.getEmail(), USER_QUIZ_SUBCOLLECTION_NAME,
+            addInSubCollection(user.getEmail(), USER_QUIZS_SUBCOLLECTION_NAME, userQuizInfo.getId(),
                     objectMapper.convertValue(userQuizInfo, Map.class));
         }
     }
@@ -151,7 +174,7 @@ public class UserRepository extends FirestoreRepository<User> {
 
         boolean updated = false;
         for (String key : userTastingsData.keySet()) {
-            if (userTastingInfo.getId().equals(userTastingsData.get(key).get("id"))) {
+            if (userTastingInfo.getId().equals(key)) {
                 saveInSubCollection(user.getEmail(), USER_TASTINGS_SUBCOLLECTION_NAME, key,
                         objectMapper.convertValue(userTastingInfo, Map.class));
                 updated = true;
@@ -159,8 +182,27 @@ public class UserRepository extends FirestoreRepository<User> {
         }
 
         if (!updated) {
-            addInSubCollection(user.getEmail(), USER_TASTINGS_SUBCOLLECTION_NAME,
+            addInSubCollection(user.getEmail(), USER_TASTINGS_SUBCOLLECTION_NAME, userTastingInfo.getId(),
                     objectMapper.convertValue(userTastingInfo, Map.class));
+        }
+    }
+
+    public void saveUserAnswer(User user, UserAnswerInfo userAnswerInfo) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userAnswersData =
+                findAllDocumentsInSubCollection(user.getEmail(), USER_ANSWERS_SUBCOLLECTION_NAME);
+
+        boolean updated = false;
+        for (String key : userAnswersData.keySet()) {
+            if (userAnswerInfo.getId().equals(key)) {
+                saveInSubCollection(user.getEmail(), USER_ANSWERS_SUBCOLLECTION_NAME, key,
+                        objectMapper.convertValue(userAnswerInfo, Map.class));
+                updated = true;
+            }
+        }
+
+        if (!updated) {
+            addInSubCollection(user.getEmail(), USER_ANSWERS_SUBCOLLECTION_NAME, userAnswerInfo.getId(),
+                    objectMapper.convertValue(userAnswerInfo, Map.class));
         }
     }
 }

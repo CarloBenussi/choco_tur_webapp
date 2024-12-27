@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.cloud.firestore.DocumentReference;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
+import com.google.firestore.v1.Document;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
@@ -70,7 +71,8 @@ public abstract class FirestoreRepository<T> {
         firestore.collection(collection).document(id).collection(subCollection).document(subId).set(map);
     }
 
-    protected void addInSubCollection(String id, String subCollection, Map<String, Object> map) {
-        firestore.collection(collection).document(id).collection(subCollection).add(map);
+    protected void addInSubCollection(String id, String subCollection, String subId, Map<String, Object> data) {
+        DocumentReference newDoc = firestore.collection(collection).document(id).collection(subCollection).document(subId);
+        newDoc.set(data);
     }
 }

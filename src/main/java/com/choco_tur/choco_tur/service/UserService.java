@@ -138,6 +138,10 @@ public class UserService {
         saveUser(user);
     }
 
+    public String encodePassword(String password) {
+        return encoder.encode(password);
+    }
+
     public User getUserByEmail(String email) throws ExecutionException, InterruptedException {
         return userRepository.findByEmail(email);
     }
@@ -166,6 +170,14 @@ public class UserService {
         return userRepository.getUserTasting(user.getEmail(), tastingId);
     }
 
+    public List<UserAnswerInfo> getUserAnswerInfos(User user) throws ExecutionException, InterruptedException {
+        return userRepository.getUserAnswers(user.getEmail());
+    }
+
+    public UserAnswerInfo getUserAnswerInfo(User user, String answerId) throws ExecutionException, InterruptedException {
+        return userRepository.getUserAnswer(user.getEmail(), answerId);
+    }
+
     public void saveUser(User user) {
         userRepository.save(user);
     }
@@ -180,5 +192,9 @@ public class UserService {
 
     public void saveUserTasting(User user, UserTastingInfo userTastingInfo) throws ExecutionException, InterruptedException {
         userRepository.saveUserTasting(user, userTastingInfo);
+    }
+
+    public void saveUserAnswer(User user, UserAnswerInfo userAnswerInfo) throws ExecutionException, InterruptedException {
+        userRepository.saveUserAnswer(user, userAnswerInfo);
     }
 }

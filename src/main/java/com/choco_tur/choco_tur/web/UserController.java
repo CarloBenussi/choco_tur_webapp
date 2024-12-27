@@ -1,7 +1,7 @@
 package com.choco_tur.choco_tur.web;
 
 import com.choco_tur.choco_tur.data.User;
-import com.choco_tur.choco_tur.data.UserTourInfo;
+import com.choco_tur.choco_tur.data.UserAnswerInfo;
 import com.choco_tur.choco_tur.service.ExternalProviderService;
 import com.choco_tur.choco_tur.service.JwtService;
 import com.choco_tur.choco_tur.service.UserAlreadyExistAuthenticationException;
@@ -204,6 +204,10 @@ public class UserController {
         if (!user.getPasswordResetNumber().equals(number)) {
             return new ResponseEntity<>("User with email " + email + " has different verification number", HttpStatus.BAD_REQUEST);
         }
+        Calendar calendar = Calendar.getInstance();
+        if (user.getPasswordResetNumberGenerationTime() - calendar.getTime().getTime() <= 0) {
+            return new ResponseEntity<>("Password reset number expired", HttpStatus.BAD_REQUEST);
+        }
 
         return new ResponseEntity<>("OK, proceed", HttpStatus.OK);
     }
@@ -225,7 +229,8 @@ public class UserController {
             return new ResponseEntity<>("Password reset number expired", HttpStatus.BAD_REQUEST);
         }
 
-        user.setPassword(changePasswordDto.getPassword());
+        String encodedPassword = userService.encodePassword(changePasswordDto.getPassword());
+        user.setPassword(encodedPassword);
         user.setPasswordResetNumber(null);
         user.setPasswordResetNumberGenerationTime(-1);
         userService.saveUser(user);
@@ -336,6 +341,38 @@ public class UserController {
         User user = userService.getUserByEmail(userDetails.getUsername());
         user.setCollectedCoins(user.getCollectedCoins() - coins);
         userService.saveUser(user);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/info/getAnswers")
+    public ResponseEntity<?> getUserAnswers() throws ExecutionException, InterruptedException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!authentication.isAuthenticated()) {
+            return new ResponseEntity<>("User is not authenticated", HttpStatus.UNAUTHORIZED);
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        User user = userService.getUserByEmail(userDetails.getUsername());
+        List<UserAnswerInfo> userAnswerInfos = userService.getUserAnswerInfos(user);
+
+        return ResponseEntity.ok(userAnswerInfos);
+    }
+
+    @PostMapping("/info/recordAnswer")
+    public ResponseEntity<?> recordAnswer(@RequestBody String answerId) throws ExecutionException, InterruptedException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!authentication.isAuthenticated()) {
+            return new ResponseEntity<>("User is not authenticated", HttpStatus.UNAUTHORIZED);
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        UserAnswerInfo userAnswerInfo = new UserAnswerInfo();
+        userAnswerInfo.setId(answerId);
+        User user = userService.getUserByEmail(userDetails.getUsername());
+        userService.saveUserAnswer(user, userAnswerInfo);
 
         return new ResponseEntity<>(HttpStatus.OK);
     }

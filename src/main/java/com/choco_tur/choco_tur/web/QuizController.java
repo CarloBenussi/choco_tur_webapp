@@ -41,7 +41,7 @@ public class QuizController {
     }
 
 
-    @GetMapping("/userQuizs")
+    @GetMapping("/user/quizs")
     public ResponseEntity<?> getUserQuizs() throws ExecutionException, InterruptedException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!authentication.isAuthenticated()) {
@@ -56,7 +56,7 @@ public class QuizController {
         return ResponseEntity.ok(userQuizInfos);
     }
 
-    @PostMapping("/updateQuizScore")
+    @PostMapping("/user/updateQuizScore")
     public ResponseEntity<String> updateQuizScore(
             @RequestBody QuizScoreUpdateDto quizScoreUpdateDto
     ) throws ExecutionException, InterruptedException {

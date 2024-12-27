@@ -7,14 +7,7 @@ import lombok.Setter;
 
 @Entity
 @Getter @Setter
-public class TourStopStory {
-    
-    private Integer index;
-
-    @Id
-    private String id;
-
-    private Integer type;
-
-    private String contentJson;
+public class UserAnswerInfo {
+  @Id
+  private String id;
 }

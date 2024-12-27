@@ -12,8 +12,11 @@ import java.util.Map;
 @Getter @Setter
 @Entity
 public class QuizQuestion {
-    @Id
+    
     private Integer index;
+
+    @Id
+    private String id;
 
     @ElementCollection
     private Map<String, String> question;

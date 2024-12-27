@@ -30,7 +30,7 @@ public class TourController {
         this.tourService = tourService;
     }
 
-    @GetMapping("/userTours")
+    @GetMapping("/user/tours")
     public ResponseEntity<?> getUserTours() throws ExecutionException, InterruptedException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!authentication.isAuthenticated()) {
@@ -45,7 +45,7 @@ public class TourController {
         return ResponseEntity.ok(userTourInfos);
     }
 
-    @PostMapping("/activateUserTour")
+    @PostMapping("/user/activateTour")
     public ResponseEntity<?> activateUserTour(@RequestBody String tourId) throws ExecutionException, InterruptedException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!authentication.isAuthenticated()) {
@@ -78,7 +78,7 @@ public class TourController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/deactivateUserTour")
+    @PostMapping("/user/deactivateTour")
     public ResponseEntity<?> deactivateUserTour(@RequestBody String tourId) throws ExecutionException, InterruptedException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!authentication.isAuthenticated()) {
@@ -104,7 +104,7 @@ public class TourController {
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @PostMapping("/advanceUserTour")
+    @PostMapping("/user/advanceTour")
     public ResponseEntity<?> advanceUserTour(@RequestBody String tourId) throws ExecutionException, InterruptedException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!authentication.isAuthenticated()) {
@@ -138,7 +138,7 @@ public class TourController {
         }
     }
 
-    @PostMapping("/revertUserTour")
+    @PostMapping("/user/revertTour")
     public ResponseEntity<?> revertUserTour(@RequestBody String tourId) throws ExecutionException, InterruptedException {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (!authentication.isAuthenticated()) {

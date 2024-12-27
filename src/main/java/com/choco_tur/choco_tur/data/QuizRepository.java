@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutionException;
 @Repository
 public class QuizRepository extends FirestoreRepository<Quiz> {
 
-    static final String QUIZ_COLLECTION_NAME = "quiz";
+    static final String QUIZ_COLLECTION_NAME = "quizs";
 
     static final String QUIZ_QUESTIONS_COLLECTION_NAME = "questions";
 
