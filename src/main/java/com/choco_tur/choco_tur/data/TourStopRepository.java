@@ -34,6 +34,7 @@ public class TourStopRepository extends FirestoreRepository<TourStop> {
             TourStopStory tourStopStory = new TourStopStory();
             tourStopStory.setIndex(Integer.parseInt(key));
             tourStopStory.setType(Integer.parseInt(tourStopStoriesData.get(key).get("type").toString()));
+            tourStopStory.setId(tourStopStoriesData.get(key).get("id").toString());
             tourStopStory.setContentJson(objectMapper.writeValueAsString(tourStopStoriesData.get(key)));
             tourStopStories.add(tourStopStory);
         }
