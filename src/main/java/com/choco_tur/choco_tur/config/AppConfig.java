@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 
 import com.google.cloud.firestore.Firestore;
+import com.google.cloud.firestore.FirestoreOptions;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 
@@ -28,11 +29,17 @@ public class AppConfig {
 
     @Bean
     public Firestore firestore() throws IOException {
+        String projectId = "chocotur";
+        String databaseName = "main";
         FirebaseOptions options = new FirebaseOptions.Builder()
                 .setCredentials(GoogleCredentials.getApplicationDefault())
                 .build();
         FirebaseApp.initializeApp(options);
 
-        return FirestoreClient.getFirestore();
+        return FirestoreOptions.newBuilder()
+            .setProjectId(projectId)
+            .setDatabaseId(databaseName)
+            .build()
+            .getService();
     }
 }
