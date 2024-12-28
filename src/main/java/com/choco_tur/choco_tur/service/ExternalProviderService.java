@@ -1,21 +1,32 @@
 package com.choco_tur.choco_tur.service;
 
+import com.choco_tur.choco_tur.config.ConfigProperties;
 import com.choco_tur.choco_tur.web.dto.UserExtProviderSignInDto;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.jackson2.JacksonFactory;
 import com.nimbusds.oauth2.sdk.GeneralException;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.util.Collections;
 
 @Service
 public class ExternalProviderService {
 
     private GoogleIdTokenVerifier googleIdTokenVerifier;
 
+    @Autowired
+    private ConfigProperties configProperties;
+
     public ExternalProviderService(GoogleIdTokenVerifier googleIdTokenVerifier) {
-        this.googleIdTokenVerifier = googleIdTokenVerifier;
+        this.googleIdTokenVerifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
+            .setAudience(Collections.singletonList(configProperties.getGoogleClientId()))
+            .build();
     }
 
     public void validateExtProviderToken(UserExtProviderSignInDto userDto)

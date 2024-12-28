@@ -86,21 +86,21 @@ public class UserController {
         try {
             externalProviderService.validateExtProviderToken(userDto);
 
-            // Authenticate user as well.
-            // TODO: Here the 'authenticate' call will check that the hash of the passed password
-            // matches the hash of the password saved for this user. So we need to generate a
-            // temporary password for the user, save it (hashed) and return it on 'signInWithExtProvider'
-            // so we can pass it here? Or maybe we can simply skip this step and generate the jwt token
-            // directly?
-            Authentication authenticationRequest =
-                    UsernamePasswordAuthenticationToken.unauthenticated(
-                            userDto.getEmail(), null);
-            this.authenticationManager.authenticate(authenticationRequest);
-            // TODO: Handle DisabledException, LockedException, BadCredentialsException
+            // Here the 'authenticate' call would check that the hash of the passed password
+            // matches the hash of the password saved for this user. We can simply skip this step and generate the jwt token
+            // directly
+            // Authentication authenticationRequest =
+            //         UsernamePasswordAuthenticationToken.unauthenticated(
+            //                 userDto.getEmail(), null);
+            // this.authenticationManager.authenticate(authenticationRequest);
 
-            // TODO: registerNewUser?
+            User user = User.builder()
+                .email(userDto.getEmail())
+                .emailValidationStatus(true)
+                .externalProviderId(1)
+                .build();
+            userService.saveUser(user);
 
-            User user = userService.getUserByEmail(userDto.getEmail());
             String jwtAccessToken = jwtService.generateAccessToken(userDto.getEmail());
             String jwtRefreshToken = jwtService.generateRefreshToken(userDto.getEmail());
 

@@ -1,15 +1,13 @@
 package com.choco_tur.choco_tur.data;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.Builder;
 
 @Getter @Setter
 @Entity
+@Builder
 public class User {
   @Id
   private String email;
