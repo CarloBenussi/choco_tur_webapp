@@ -39,38 +39,14 @@ public class UserService {
                     + userDto.getEmail());
         }
 
-        User user = new User();
-        user.setEmail(userDto.getEmail());
-        user.setPassword(encoder.encode(userDto.getPassword()));
-        user.setDateOfBirth(userDto.getDateOfBirth());
-        user.setNationality(userDto.getNationality());
-        user.setCollectedCoins(0);
+        User user = User.builder()
+            .email(userDto.getEmail())
+            .password(encoder.encode(userDto.getPassword()))
+            .dateOfBirth(userDto.getDateOfBirth())
+            .nationality(userDto.getNationality())
+            .collectedCoins(0)
+            .build();
 
-        saveUser(user);
-        return user;
-    }
-
-    public User signInUserWithExtProvider(UserExtProviderSignInDto userDto) throws IOException, ExecutionException, InterruptedException {
-        // Check if a user already exists registered with the same ext provider.
-        User existingUser = userRepository.findByEmail(userDto.getEmail());
-        if (existingUser != null) {
-            if (existingUser.getExternalProviderId() == userDto.getProviderId()) {
-                // Nothing to save, user is already present.
-                return existingUser;
-            } else {
-                // TODO: Warn user that its email is already registered with either other ext
-                // provider or directly.
-            }
-        }
-
-        // TODO: Validate token depending on ext provider.
-
-        // TODO: Extract user data using ext provider (date of birth, nationality).
-
-        User user = new User();
-        user.setEmail(userDto.getEmail());
-        user.setEmailValidationStatus(true);
-        user.setExternalProviderId(userDto.getProviderId());
         saveUser(user);
         return user;
     }
