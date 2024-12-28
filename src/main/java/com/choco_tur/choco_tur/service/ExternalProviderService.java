@@ -8,7 +8,6 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.nimbusds.oauth2.sdk.GeneralException;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -20,10 +19,10 @@ public class ExternalProviderService {
 
     private GoogleIdTokenVerifier googleIdTokenVerifier;
 
-    @Autowired
     private ConfigProperties configProperties;
 
-    public ExternalProviderService(GoogleIdTokenVerifier googleIdTokenVerifier) {
+    public ExternalProviderService(GoogleIdTokenVerifier googleIdTokenVerifier, ConfigProperties configProperties) {
+        this.configProperties = configProperties;
         this.googleIdTokenVerifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new JacksonFactory())
             .setAudience(Collections.singletonList(configProperties.getGoogleClientId()))
             .build();
