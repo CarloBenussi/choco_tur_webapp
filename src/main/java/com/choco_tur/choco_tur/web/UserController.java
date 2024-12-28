@@ -94,11 +94,10 @@ public class UserController {
             //                 userDto.getEmail(), null);
             // this.authenticationManager.authenticate(authenticationRequest);
 
-            User user = User.builder()
-                .email(userDto.getEmail())
-                .emailValidationStatus(true)
-                .externalProviderId(1)
-                .build();
+            User user = new User();
+            user.setEmail(userDto.getEmail());
+            user.setEmailValidationStatus(true);
+            user.setExternalProviderId(1);
             userService.saveUser(user);
 
             String jwtAccessToken = jwtService.generateAccessToken(userDto.getEmail());

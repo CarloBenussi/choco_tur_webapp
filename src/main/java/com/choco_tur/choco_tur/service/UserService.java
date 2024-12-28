@@ -1,7 +1,6 @@
 package com.choco_tur.choco_tur.service;
 
 import com.choco_tur.choco_tur.data.*;
-import com.choco_tur.choco_tur.web.dto.UserExtProviderSignInDto;
 import com.choco_tur.choco_tur.web.dto.UserRegistrationDto;
 import org.springframework.context.MessageSource;
 import org.springframework.mail.SimpleMailMessage;
@@ -9,7 +8,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.List;
@@ -39,13 +37,12 @@ public class UserService {
                     + userDto.getEmail());
         }
 
-        User user = User.builder()
-            .email(userDto.getEmail())
-            .password(encoder.encode(userDto.getPassword()))
-            .dateOfBirth(userDto.getDateOfBirth())
-            .nationality(userDto.getNationality())
-            .collectedCoins(0)
-            .build();
+        User user = new User();
+        user.setEmail(userDto.getEmail());
+        user.setPassword(encoder.encode(userDto.getPassword()));
+        user.setDateOfBirth(userDto.getDateOfBirth());
+        user.setNationality(userDto.getNationality());
+        user.setCollectedCoins(0);
 
         saveUser(user);
         return user;
