@@ -20,12 +20,14 @@ public class UserService {
     private static final int PASSWORD_RESET_TOKEN_EXPIRATION = 10;
 
     private final UserRepository userRepository;
+    private final BusinessRepository businessRepository;
     private final PasswordEncoder encoder;
     private final MessageSource messageSource;
     private final JavaMailSender mailSender;
 
-    public UserService(UserRepository userRepository, PasswordEncoder encoder, MessageSource messageSource, JavaMailSender mailSender) {
+    public UserService(UserRepository userRepository, BusinessRepository businessRepository, PasswordEncoder encoder, MessageSource messageSource, JavaMailSender mailSender) {
         this.userRepository = userRepository;
+        this.businessRepository = businessRepository;
         this.encoder = encoder;
         this.messageSource = messageSource;
         this.mailSender = mailSender;
@@ -34,6 +36,10 @@ public class UserService {
     public User registerNewUser(UserRegistrationDto userDto) throws UserAlreadyExistAuthenticationException, ExecutionException, InterruptedException {
         if (userRepository.findByEmail(userDto.getEmail()) != null) {
             throw new UserAlreadyExistAuthenticationException("There is an account with that email address: "
+                    + userDto.getEmail());
+        }
+        if (businessRepository.findByEmail(userDto.getEmail()) != null) {
+            throw new UserAlreadyExistAuthenticationException("There is a business account with that email address: "
                     + userDto.getEmail());
         }
 

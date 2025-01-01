@@ -72,7 +72,7 @@ public class UserController {
 
         String appUrl = request.getContextPath();
         String number = CommonUtils.getSixDigitNumberSequence();
-        applicationEventPublisher.publishEvent(new OnRegistrationCompleteEvent(registered,
+        applicationEventPublisher.publishEvent(new OnUserRegistrationCompleteEvent(registered,
                 request.getLocale(), appUrl, number));
 
         return new ResponseEntity<>(number, HttpStatus.OK);
@@ -168,7 +168,7 @@ public class UserController {
 
         String appUrl = request.getContextPath();
         String newNumber = CommonUtils.getSixDigitNumberSequence();
-        applicationEventPublisher.publishEvent(new OnRegistrationCompleteEvent(user,
+        applicationEventPublisher.publishEvent(new OnUserRegistrationCompleteEvent(user,
                 request.getLocale(), appUrl, newNumber));
 
         return new ResponseEntity<>(number, HttpStatus.OK);
@@ -238,7 +238,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody UserLoginDto userLoginDto) throws ExecutionException, InterruptedException {
+    public ResponseEntity<LoginResponse> login(@RequestBody LoginDto userLoginDto) throws ExecutionException, InterruptedException {
         Authentication authenticationRequest =
                 UsernamePasswordAuthenticationToken.unauthenticated(
                         userLoginDto.getEmail(), userLoginDto.getPassword());

@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 @Component
-public class RegistrationListener implements ApplicationListener<OnRegistrationCompleteEvent> {
+public class RegistrationListener implements ApplicationListener<OnUserRegistrationCompleteEvent> {
     private final UserService userService;
 
     public RegistrationListener(UserService userService) {
@@ -15,11 +15,11 @@ public class RegistrationListener implements ApplicationListener<OnRegistrationC
     }
 
     @Override
-    public void onApplicationEvent(OnRegistrationCompleteEvent event) {
+    public void onApplicationEvent(OnUserRegistrationCompleteEvent event) {
         this.confirmRegistration(event);
     }
 
-    private void confirmRegistration(OnRegistrationCompleteEvent event) {
+    private void confirmRegistration(OnUserRegistrationCompleteEvent event) {
         User user = event.getUser();
         String number = event.getRegistrationConfirmationNumber();
         userService.saveEmailVerificationNumber(user, number);
