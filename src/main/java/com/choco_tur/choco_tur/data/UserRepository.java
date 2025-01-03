@@ -3,7 +3,6 @@ package com.choco_tur.choco_tur.data;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.cloud.firestore.Firestore;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -11,8 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ExecutionException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @Repository
 public class UserRepository extends FirestoreRepository<User> {
@@ -22,6 +19,7 @@ public class UserRepository extends FirestoreRepository<User> {
     static final String USER_QUIZS_SUBCOLLECTION_NAME = "quizs";
     static final String USER_TASTINGS_SUBCOLLECTION_NAME = "tastings";
     static final String USER_ANSWERS_SUBCOLLECTION_NAME = "answers";
+    static final String USER_PURCHASES_SUBCOLLECTION_NAME = "purchases";
 
     private final ObjectMapper objectMapper;
     protected UserRepository(Firestore firestore, ObjectMapper objectMapper) {
@@ -126,6 +124,28 @@ public class UserRepository extends FirestoreRepository<User> {
         return null;
     }
 
+    public List<UserPurchaseInfo> getUserPurchases(String email) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userPurchaseData =
+                findAllDocumentsInSubCollection(email, USER_PURCHASES_SUBCOLLECTION_NAME);
+        List<UserPurchaseInfo> userPurchaseInfos = new ArrayList<>();
+        for (String key : userPurchaseData.keySet()) {
+            userPurchaseInfos.add(objectMapper.convertValue(userPurchaseData.get(key), UserPurchaseInfo.class));
+        }
+        return userPurchaseInfos;
+    }
+
+    public UserPurchaseInfo getUserPurchase(String email, String purchaseId) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userPurchaseData =
+                findAllDocumentsInSubCollection(email, USER_PURCHASES_SUBCOLLECTION_NAME);
+        for (String key : userPurchaseData.keySet()) {
+            if (purchaseId.equals(key)) {
+                return objectMapper.convertValue(userPurchaseData.get(key), UserPurchaseInfo.class);
+            }
+        }
+
+        return null;
+    }
+
     public void save(User user) {
         save(user, user.getEmail());
     }
@@ -203,6 +223,25 @@ public class UserRepository extends FirestoreRepository<User> {
         if (!updated) {
             addInSubCollection(user.getEmail(), USER_ANSWERS_SUBCOLLECTION_NAME, userAnswerInfo.getId(),
                     objectMapper.convertValue(userAnswerInfo, Map.class));
+        }
+    }
+
+    public void saveUserPurchase(User user, UserPurchaseInfo userPurchaseInfo) throws ExecutionException, InterruptedException {
+        Map<String, Map<String, Object>> userPurchaseData =
+                findAllDocumentsInSubCollection(user.getEmail(), USER_PURCHASES_SUBCOLLECTION_NAME);
+
+        boolean updated = false;
+        for (String key : userPurchaseData.keySet()) {
+            if (userPurchaseInfo.getOfferId().equals(key)) {
+                saveInSubCollection(user.getEmail(), USER_PURCHASES_SUBCOLLECTION_NAME, key,
+                        objectMapper.convertValue(userPurchaseInfo, Map.class));
+                updated = true;
+            }
+        }
+
+        if (!updated) {
+            addInSubCollection(user.getEmail(), USER_PURCHASES_SUBCOLLECTION_NAME, userPurchaseInfo.getOfferId(),
+                    objectMapper.convertValue(userPurchaseInfo, Map.class));
         }
     }
 }

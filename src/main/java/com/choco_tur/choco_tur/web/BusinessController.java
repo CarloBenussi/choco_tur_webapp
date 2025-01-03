@@ -123,9 +123,11 @@ public class BusinessController {
         business.setEmailVerificationNumberExpirationTime(-1);
         businessService.saveBusiness(business);
 
+        String deviceRegistrationToken = business.getDeviceRegistrationToken();
         String jwtAccessToken = jwtService.generateAccessToken(email);
         String jwtRefreshToken = jwtService.generateRefreshToken(email);
-        LoginResponse loginResponse = LoginResponse.builder()
+        BusinessLoginResponse loginResponse = BusinessLoginResponse.builder()
+                .deviceRegistrationToken(deviceRegistrationToken)
                 .accessToken(jwtAccessToken)
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
@@ -221,16 +223,23 @@ public class BusinessController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginDto userLoginDto) throws ExecutionException, InterruptedException {
+    public ResponseEntity<?> login(@RequestBody LoginDto businessLoginDto) throws ExecutionException, InterruptedException {
         Authentication authenticationRequest =
                 UsernamePasswordAuthenticationToken.unauthenticated(
-                        userLoginDto.getEmail(), userLoginDto.getPassword());
+                        businessLoginDto.getEmail(), businessLoginDto.getPassword());
         this.authenticationManager.authenticate(authenticationRequest);
         // TODO: Handle DisabledException, LockedException
 
-        String jwtAccessToken = jwtService.generateAccessToken(userLoginDto.getEmail());
-        String jwtRefreshToken = jwtService.generateRefreshToken(userLoginDto.getEmail());
-        LoginResponse loginResponse = LoginResponse.builder()
+        Business business = businessService.getBusinessByEmail(businessLoginDto.getEmail());
+        if (business == null) {
+            return new ResponseEntity<>("Business " + businessLoginDto.getEmail() + " not found!", HttpStatus.BAD_REQUEST);
+        }
+
+        String deviceRegistrationToken = business.getDeviceRegistrationToken();
+        String jwtAccessToken = jwtService.generateAccessToken(businessLoginDto.getEmail());
+        String jwtRefreshToken = jwtService.generateRefreshToken(businessLoginDto.getEmail());
+        BusinessLoginResponse loginResponse = BusinessLoginResponse.builder()
+                .deviceRegistrationToken(deviceRegistrationToken)
                 .accessToken(jwtAccessToken)
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
@@ -249,7 +258,7 @@ public class BusinessController {
         Business business = businessService.getBusinessByEmail(userLoginWithTokenDto.getEmail());
 
         String jwtRefreshToken = jwtService.generateRefreshToken(userLoginWithTokenDto.getEmail());
-        LoginResponse loginResponse = LoginResponse.builder()
+        UserLoginResponse loginResponse = UserLoginResponse.builder()
                 .accessToken(userLoginWithTokenDto.getAccessToken())
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
@@ -271,7 +280,7 @@ public class BusinessController {
         // Regenerate new tokens.
         String jwtAccessToken = jwtService.generateAccessToken(email);
         String jwtRefreshToken = jwtService.generateRefreshToken(email);
-        LoginResponse loginResponse = LoginResponse.builder()
+        UserLoginResponse loginResponse = UserLoginResponse.builder()
                 .accessToken(jwtAccessToken)
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)

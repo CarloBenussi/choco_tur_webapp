@@ -157,6 +157,14 @@ public class UserService {
         return userRepository.getUserAnswer(user.getEmail(), answerId);
     }
 
+    public List<UserPurchaseInfo> getUserPurchaseInfos(User user) throws ExecutionException, InterruptedException {
+        return userRepository.getUserPurchases(user.getEmail());
+    }
+
+    public UserPurchaseInfo getUserPurchaseInfo(User user, String purchaseId) throws ExecutionException, InterruptedException {
+        return userRepository.getUserPurchase(user.getEmail(), purchaseId);
+    }
+
     public void saveUser(User user) {
         userRepository.save(user);
     }
@@ -175,5 +183,9 @@ public class UserService {
 
     public void saveUserAnswer(User user, UserAnswerInfo userAnswerInfo) throws ExecutionException, InterruptedException {
         userRepository.saveUserAnswer(user, userAnswerInfo);
+    }
+
+    public void saveUserPurchase(User user, UserPurchaseInfo userPurchaseInfo) throws ExecutionException, InterruptedException {
+        userRepository.saveUserPurchase(user, userPurchaseInfo);
     }
 }

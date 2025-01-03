@@ -37,6 +37,7 @@ public class BusinessService {
         }
 
         Business business = new Business();
+        business.setDeviceRegistrationToken(businessDto.getDeviceRegistrationToken());
         business.setEmail(businessDto.getEmail());
         business.setPassword(encoder.encode(businessDto.getPassword()));
 

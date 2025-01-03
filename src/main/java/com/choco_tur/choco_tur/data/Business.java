@@ -12,6 +12,8 @@ public class Business {
 
   private String password;
 
+  private String deviceRegistrationToken;
+
   private String emailVerificationNumber;
 
   private long emailVerificationNumberExpirationTime = -1;

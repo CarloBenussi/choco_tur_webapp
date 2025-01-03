@@ -30,4 +30,8 @@ public class BusinessRegistrationDto {
   @NotNull
   @NotEmpty
   private String invitationToken;
+
+  @NotNull
+  @NotEmpty
+  private String deviceRegistrationToken;
 }

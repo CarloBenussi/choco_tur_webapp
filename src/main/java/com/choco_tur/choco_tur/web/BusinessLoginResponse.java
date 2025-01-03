@@ -1,16 +1,16 @@
 package com.choco_tur.choco_tur.web;
 
-import com.choco_tur.choco_tur.data.UserTourInfo;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 import lombok.Getter;
 
-import java.util.List;
-
 @Builder
 @Getter
-public class LoginResponse {
+public class BusinessLoginResponse {
+    @NotEmpty 
+    private String deviceRegistrationToken;
+
     @NotEmpty
     private String accessToken;
 

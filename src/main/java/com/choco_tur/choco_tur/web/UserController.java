@@ -94,7 +94,11 @@ public class UserController {
             //                 userDto.getEmail(), null);
             // this.authenticationManager.authenticate(authenticationRequest);
 
-            User user = new User();
+            // Should not recreate user if it exists already.
+            User user = userService.getUserByEmail(userDto.getEmail());
+            if (user == null) {
+                user = new User();
+            }
             user.setEmail(userDto.getEmail());
             user.setEmailValidationStatus(true);
             user.setExternalProviderId(1);
@@ -103,7 +107,7 @@ public class UserController {
             String jwtAccessToken = jwtService.generateAccessToken(userDto.getEmail());
             String jwtRefreshToken = jwtService.generateRefreshToken(userDto.getEmail());
 
-            LoginResponse loginResponse = LoginResponse.builder()
+            UserLoginResponse loginResponse = UserLoginResponse.builder()
                     .accessToken(jwtAccessToken)
                     .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                     .refreshToken(jwtRefreshToken)
@@ -142,7 +146,7 @@ public class UserController {
 
         String jwtAccessToken = jwtService.generateAccessToken(email);
         String jwtRefreshToken = jwtService.generateRefreshToken(email);
-        LoginResponse loginResponse = LoginResponse.builder()
+        UserLoginResponse loginResponse = UserLoginResponse.builder()
                 .accessToken(jwtAccessToken)
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
@@ -238,7 +242,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginDto userLoginDto) throws ExecutionException, InterruptedException {
+    public ResponseEntity<UserLoginResponse> login(@RequestBody LoginDto userLoginDto) throws ExecutionException, InterruptedException {
         Authentication authenticationRequest =
                 UsernamePasswordAuthenticationToken.unauthenticated(
                         userLoginDto.getEmail(), userLoginDto.getPassword());
@@ -247,7 +251,7 @@ public class UserController {
 
         String jwtAccessToken = jwtService.generateAccessToken(userLoginDto.getEmail());
         String jwtRefreshToken = jwtService.generateRefreshToken(userLoginDto.getEmail());
-        LoginResponse loginResponse = LoginResponse.builder()
+        UserLoginResponse loginResponse = UserLoginResponse.builder()
                 .accessToken(jwtAccessToken)
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
@@ -266,7 +270,7 @@ public class UserController {
         User user = userService.getUserByEmail(userLoginWithTokenDto.getEmail());
 
         String jwtRefreshToken = jwtService.generateRefreshToken(userLoginWithTokenDto.getEmail());
-        LoginResponse loginResponse = LoginResponse.builder()
+        UserLoginResponse loginResponse = UserLoginResponse.builder()
                 .accessToken(userLoginWithTokenDto.getAccessToken())
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
@@ -288,7 +292,7 @@ public class UserController {
         // Regenerate new tokens.
         String jwtAccessToken = jwtService.generateAccessToken(email);
         String jwtRefreshToken = jwtService.generateRefreshToken(email);
-        LoginResponse loginResponse = LoginResponse.builder()
+        UserLoginResponse loginResponse = UserLoginResponse.builder()
                 .accessToken(jwtAccessToken)
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
                 .refreshToken(jwtRefreshToken)
