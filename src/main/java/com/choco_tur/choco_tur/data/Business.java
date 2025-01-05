@@ -8,6 +8,9 @@ import lombok.Setter;
 @Entity
 public class Business {
   @Id
+  private String id;
+
+  @Id
   private String email;
 
   private String password;

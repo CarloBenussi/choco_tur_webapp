@@ -53,6 +53,13 @@ public class JwtService {
         return (extractedEmail.equals(email)) && !isTokenExpired(token);
     }
 
+    public boolean isTokenValid(String token, String email, String businessId) {
+        final Claims claims = extractAllClaims(token);
+        final String extractedEmail = claims.getSubject();
+        final String extractedBusinessId = claims.get("businessId", String.class);
+        return (extractedEmail.equals(email)) && (extractedBusinessId.equals(businessId)) && !isTokenExpired(token);
+    }
+
     public long getAccessTokenExpirationTime() {
         return jwtAccessTokenExpirationMs;
     }

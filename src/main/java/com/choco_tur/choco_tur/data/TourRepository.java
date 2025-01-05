@@ -41,26 +41,4 @@ public class TourRepository extends FirestoreRepository<Tour> {
         tour.setId(tourId);
         return tour;
     }
-
-    public List<TourStopInfo> getTourStopInfos(Tour tour) throws ExecutionException, InterruptedException {
-        Map<String, Map<String, Object>> tourStopInfosData =
-                findAllDocumentsInSubCollection(tour.getId(), TOUR_STOP_INFOS_COLLECTION_NAME);
-        List<TourStopInfo> tourStopInfos = new ArrayList<>();
-        // TODO: Order by key.
-        for (String key : tourStopInfosData.keySet()) {
-            tourStopInfos.add(objectMapper.convertValue(tourStopInfosData.get(key), TourStopInfo.class));
-        }
-        return tourStopInfos;
-    }
-
-    public List<TourTastingInfo> getTourTastingInfos(Tour tour) throws ExecutionException, InterruptedException {
-        Map<String, Map<String, Object>> tourTastingInfosData =
-                findAllDocumentsInSubCollection(tour.getId(), TOUR_TASTING_INFOS_COLLECTION_NAME);
-        // TODO: Order by key.
-        List<TourTastingInfo> tourTastingInfos = new ArrayList<>();
-        for (String key : tourTastingInfosData.keySet()) {
-            tourTastingInfos.add(objectMapper.convertValue(tourTastingInfosData.get(key), TourTastingInfo.class));
-        }
-        return tourTastingInfos;
-    }
 }

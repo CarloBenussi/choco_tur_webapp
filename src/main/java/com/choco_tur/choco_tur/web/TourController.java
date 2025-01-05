@@ -13,8 +13,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/tours")
@@ -172,21 +174,24 @@ public class TourController {
     @GetMapping("/tours")
     public ResponseEntity<?> getTours() throws ExecutionException, InterruptedException {
 
-        List<Tour> tours = tourService.getAllTours();
-        TourInfosResponse tourInfosResponse = TourInfosResponse.builder().tours(tours).build();
+        List<Tour> availableTours = tourService.getAllTours();
+
+        List<TourInfoResponse> tourInfos = new ArrayList<TourInfoResponse>();
+        for (Tour availableTour : availableTours) {
+            List<TourStop> tourStops = tourService.getTourStops(availableTour.getId());
+            List<Tasting> tourTastings = tourService.getTourTastings(availableTour.getId());
+            TourInfoResponse tourInfoResponse = TourInfoResponse.builder()
+            .tour(availableTour)
+            .stopInfos(tourStops.stream().map(tourStop -> new TourStopInfo(tourStop)).collect(Collectors.toList()))
+            .tastingInfos(tourTastings.stream().map(tourTasting -> new TourTastingInfo(tourTasting)).collect(Collectors.toList()))
+            .build();
+            tourInfos.add(tourInfoResponse);
+        }
+        TourInfosResponse tourInfosResponse = TourInfosResponse.builder()
+            .tours(tourInfos)
+            .build();
 
         return ResponseEntity.ok(tourInfosResponse);
-    }
-
-    @GetMapping("/tour")
-    public ResponseEntity<?> getTour(@RequestParam String tourId) throws ExecutionException, InterruptedException {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (!authentication.isAuthenticated()) {
-            return new ResponseEntity<>("User is not authenticated", HttpStatus.UNAUTHORIZED);
-        }
-
-        Tour tour = tourService.getTour(tourId);
-        return ResponseEntity.ok(tour);
     }
 
     @GetMapping("/tourStops")

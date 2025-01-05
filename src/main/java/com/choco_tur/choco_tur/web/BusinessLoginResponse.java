@@ -9,6 +9,9 @@ import lombok.Getter;
 @Getter
 public class BusinessLoginResponse {
     @NotEmpty 
+    private String businessId;
+
+    @NotEmpty 
     private String deviceRegistrationToken;
 
     @NotEmpty

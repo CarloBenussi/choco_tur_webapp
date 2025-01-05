@@ -16,5 +16,9 @@ public class InvitationValidationDto {
 
   @NotNull
   @NotEmpty
+  private String businessId;
+
+  @NotNull
+  @NotEmpty
   private String invitationToken;
 }

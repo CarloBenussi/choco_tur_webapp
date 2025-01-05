@@ -35,7 +35,6 @@ public class Tour {
   @ElementCollection
   private List<String> stopIds;
 
-  private Object stopInfos;
-
-  private Object tastingInfos;
+  @ElementCollection
+  private List<String> tastingIds;
 }

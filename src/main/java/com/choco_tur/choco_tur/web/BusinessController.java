@@ -65,8 +65,12 @@ public class BusinessController {
             @Valid @RequestBody InvitationValidationDto invitationValidationDto,
             HttpServletRequest request
     ) throws ExecutionException, InterruptedException, UserAlreadyExistAuthenticationException {
-        if (!jwtService.isTokenValid(invitationValidationDto.getInvitationToken(), invitationValidationDto.getEmail())) {
+        if (!jwtService.isTokenValid(invitationValidationDto.getInvitationToken(), invitationValidationDto.getEmail(), invitationValidationDto.getBusinessId())) {
             return new ResponseEntity<>("Token expired or invalid", HttpStatus.UNAUTHORIZED);
+        }
+
+        if (businessService.getBusinessById(invitationValidationDto.getBusinessId()) != null) {
+            return new ResponseEntity<>("A business with ID " + invitationValidationDto.getBusinessId() + " already exists!", HttpStatus.UNAUTHORIZED);
         }
 
         if (businessService.getBusinessByEmail(invitationValidationDto.getEmail()) != null) {
@@ -81,8 +85,12 @@ public class BusinessController {
             @Valid @RequestBody BusinessRegistrationDto businessRegistrationDto,
             HttpServletRequest request
     ) throws ExecutionException, InterruptedException, UserAlreadyExistAuthenticationException {
-        if (!jwtService.isTokenValid(businessRegistrationDto.getInvitationToken(), businessRegistrationDto.getEmail())) {
+        if (!jwtService.isTokenValid(businessRegistrationDto.getInvitationToken(), businessRegistrationDto.getEmail(), businessRegistrationDto.getBusinessId())) {
             return new ResponseEntity<>("Token expired or invalid", HttpStatus.UNAUTHORIZED);
+        }
+
+        if (businessService.getBusinessById(businessRegistrationDto.getBusinessId()) != null) {
+            return new ResponseEntity<>("A business with ID " + businessRegistrationDto.getBusinessId() + " already exists!", HttpStatus.UNAUTHORIZED);
         }
 
         if (businessService.getBusinessByEmail(businessRegistrationDto.getEmail()) != null) {
@@ -106,7 +114,7 @@ public class BusinessController {
     ) throws ExecutionException, InterruptedException {
         Business business = businessService.getBusinessByEmail(email);
         if (business == null) {
-            return new ResponseEntity<>("No business found by email", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>("No business found by email " + email, HttpStatus.BAD_REQUEST);
         }
 
         if (!number.equals(business.getEmailVerificationNumber())) {
@@ -127,6 +135,7 @@ public class BusinessController {
         String jwtAccessToken = jwtService.generateAccessToken(email);
         String jwtRefreshToken = jwtService.generateRefreshToken(email);
         BusinessLoginResponse loginResponse = BusinessLoginResponse.builder()
+                .businessId(business.getId())
                 .deviceRegistrationToken(deviceRegistrationToken)
                 .accessToken(jwtAccessToken)
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())
@@ -239,6 +248,7 @@ public class BusinessController {
         String jwtAccessToken = jwtService.generateAccessToken(businessLoginDto.getEmail());
         String jwtRefreshToken = jwtService.generateRefreshToken(businessLoginDto.getEmail());
         BusinessLoginResponse loginResponse = BusinessLoginResponse.builder()
+                .businessId(business.getId())
                 .deviceRegistrationToken(deviceRegistrationToken)
                 .accessToken(jwtAccessToken)
                 .accessTokenExpiresIn(jwtService.getAccessTokenExpirationTime())

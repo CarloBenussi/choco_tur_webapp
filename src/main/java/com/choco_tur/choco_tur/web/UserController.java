@@ -1,9 +1,12 @@
 package com.choco_tur.choco_tur.web;
 
+import com.choco_tur.choco_tur.data.Offer;
 import com.choco_tur.choco_tur.data.User;
 import com.choco_tur.choco_tur.data.UserAnswerInfo;
+import com.choco_tur.choco_tur.data.UserPurchaseInfo;
 import com.choco_tur.choco_tur.service.ExternalProviderService;
 import com.choco_tur.choco_tur.service.JwtService;
+import com.choco_tur.choco_tur.service.OfferService;
 import com.choco_tur.choco_tur.service.UserAlreadyExistAuthenticationException;
 import com.choco_tur.choco_tur.utils.CommonUtils;
 import com.choco_tur.choco_tur.web.dto.*;
@@ -26,6 +29,7 @@ import jakarta.validation.Valid;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
@@ -36,6 +40,7 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping("/users")
 public class UserController {
     private final UserService userService;
+    private final OfferService offerService;
 
     private final ApplicationEventPublisher applicationEventPublisher;
 
@@ -49,6 +54,7 @@ public class UserController {
 
     public UserController(
             UserService userService,
+            OfferService offerService,
             ApplicationEventPublisher applicationEventPublisher,
             MessageSource messageSource,
             JwtService jwtService,
@@ -56,6 +62,7 @@ public class UserController {
             ExternalProviderService externalProviderService
     ) {
         this.userService = userService;
+        this.offerService = offerService;
         this.applicationEventPublisher = applicationEventPublisher;
         this.messageSource = messageSource;
         this.jwtService = jwtService;
@@ -378,5 +385,48 @@ public class UserController {
         userService.saveUserAnswer(user, userAnswerInfo);
 
         return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @PostMapping("/info/purchaseOffer")
+    public ResponseEntity<?> purchaseOffer(@RequestBody String offerId) throws ExecutionException, InterruptedException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!authentication.isAuthenticated()) {
+            return new ResponseEntity<>("User is not authenticated", HttpStatus.UNAUTHORIZED);
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        User user = userService.getUserByEmail(userDetails.getUsername());
+        
+        Offer offer = offerService.getOffer(offerId);
+
+        UserPurchaseInfo userPurchaseInfo = new UserPurchaseInfo();
+        userPurchaseInfo.setOfferId(offerId);
+        userPurchaseInfo.setPurchaseTime(new Timestamp(System.currentTimeMillis()).toString());
+        userPurchaseInfo.setExpiryTime(new Timestamp(System.currentTimeMillis() + (offer.getDuration() * 1000)).toString());
+        userPurchaseInfo.setRedeemed(false);
+        userPurchaseInfo.setPurchaseMethod(0);
+
+        // Remove coins from user.
+        user.setCollectedCoins(user.getCollectedCoins() - offer.getTokensCost());
+
+        userService.saveUserPurchase(user, userPurchaseInfo);
+        userService.saveUser(user);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+
+    @GetMapping("/info/getPurchaseInfos")
+    public ResponseEntity<?> getPurchaseInfos() throws ExecutionException, InterruptedException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!authentication.isAuthenticated()) {
+            return new ResponseEntity<>("User is not authenticated", HttpStatus.UNAUTHORIZED);
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+
+        User user = userService.getUserByEmail(userDetails.getUsername());
+        List<UserPurchaseInfo> userPurchaseInfos = userService.getUserPurchaseInfos(user);
+
+        return ResponseEntity.ok(userPurchaseInfos);
     }
 }

@@ -62,6 +62,8 @@ public class WebSecurityConfig {
             .hasRole("BUSINESS")
             .requestMatchers("/business/**")
             .permitAll()
+            .requestMatchers("/offers/**")
+            .permitAll()
             .and()
             .sessionManagement()
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

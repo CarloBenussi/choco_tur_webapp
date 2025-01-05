@@ -1,6 +1,5 @@
 package com.choco_tur.choco_tur.web;
 
-import com.choco_tur.choco_tur.data.Tour;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 import lombok.Getter;
@@ -13,5 +12,5 @@ import java.util.List;
 @Setter
 public class TourInfosResponse {
     @NotEmpty
-    private List<Tour> tours;
+    private List<TourInfoResponse> tours;
 }

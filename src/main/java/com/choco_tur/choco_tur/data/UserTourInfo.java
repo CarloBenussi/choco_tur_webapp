@@ -1,12 +1,8 @@
 package com.choco_tur.choco_tur.data;
 
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.sql.Date;
-import java.sql.Timestamp;
 
 @Getter
 @Setter

@@ -19,6 +19,10 @@ public class BusinessRegistrationDto {
 
   @NotNull
   @NotEmpty
+  private String businessId;
+
+  @NotNull
+  @NotEmpty
   @ValidPassword
   private String password;
 

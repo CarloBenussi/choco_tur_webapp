@@ -38,6 +38,7 @@ public class BusinessService {
 
         Business business = new Business();
         business.setDeviceRegistrationToken(businessDto.getDeviceRegistrationToken());
+        business.setId(businessDto.getBusinessId());
         business.setEmail(businessDto.getEmail());
         business.setPassword(encoder.encode(businessDto.getPassword()));
 
@@ -115,6 +116,11 @@ public class BusinessService {
     public Business getBusinessByEmail(String email) throws ExecutionException, InterruptedException {
         return businessRepository.findByEmail(email);
     }
+
+    public Business getBusinessById(String businessId) throws ExecutionException, InterruptedException {
+        return businessRepository.findById(businessId);
+    }
+
     public void saveBusiness(Business business) {
         businessRepository.save(business);
     }

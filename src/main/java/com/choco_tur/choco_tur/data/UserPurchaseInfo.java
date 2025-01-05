@@ -11,9 +11,11 @@ public class UserPurchaseInfo {
     @Id
     private String offerId;
 
-    private String purchaseDate;
+    private boolean redeemed;
 
-    private String expiryDate;
+    private String purchaseTime;
+
+    private String expiryTime;
 
     // 0-tokens 1-tour
     private Integer purchaseMethod;

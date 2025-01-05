@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import com.choco_tur.choco_tur.data.*;
+import com.choco_tur.choco_tur.web.TourStopInfo;
+import com.choco_tur.choco_tur.web.TourTastingInfo;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.stereotype.Service;
 
@@ -13,24 +15,16 @@ import org.springframework.stereotype.Service;
 public class TourService {
   private final TourRepository tourRepository;
   private final TourStopRepository tourStopRepository;
+  private final TastingService tastingService;
 
-  public TourService(TourRepository tourRepository, TourStopRepository tourStopRepository) {
+  public TourService(TourRepository tourRepository, TourStopRepository tourStopRepository, TastingService tastingService) {
     this.tourRepository = tourRepository;
-      this.tourStopRepository = tourStopRepository;
+    this.tourStopRepository = tourStopRepository;
+    this.tastingService = tastingService;
   }
 
   public List<Tour> getAllTours() throws ExecutionException, InterruptedException {
     List<Tour> tours = tourRepository.findAllTours();
-    for (Tour tour : tours) {
-      Object tourStopInfos = tourRepository.getTourStopInfos(tour);
-      tour.setStopInfos(tourStopInfos);
-    }
-
-    for (Tour tour : tours) {
-      Object tourTastingInfos = tourRepository.getTourTastingInfos(tour);
-      tour.setTastingInfos(tourTastingInfos);
-    }
-
     return tours;
   }
 
@@ -46,6 +40,16 @@ public class TourService {
     }
 
     return stops;
+  }
+
+  public List<Tasting> getTourTastings(String tourId) throws ExecutionException, InterruptedException {
+    Tour tour = tourRepository.getTour(tourId);
+    List<Tasting> tastings = new ArrayList<>();
+    for (String tastingId : tour.getTastingIds()) {
+      tastings.add(tastingService.getTasting(tastingId));
+    }
+
+    return tastings;
   }
 
   public List<TourStopStory> getTourStopStories(String stopId) throws ExecutionException, InterruptedException, JsonProcessingException {
