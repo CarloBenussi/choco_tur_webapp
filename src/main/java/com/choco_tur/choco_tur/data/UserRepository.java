@@ -232,7 +232,7 @@ public class UserRepository extends FirestoreRepository<User> {
 
         boolean updated = false;
         for (String key : userPurchaseData.keySet()) {
-            if (userPurchaseInfo.getOfferId().equals(key)) {
+            if (userPurchaseInfo.getId().equals(key)) {
                 saveInSubCollection(user.getEmail(), USER_PURCHASES_SUBCOLLECTION_NAME, key,
                         objectMapper.convertValue(userPurchaseInfo, Map.class));
                 updated = true;
@@ -240,7 +240,7 @@ public class UserRepository extends FirestoreRepository<User> {
         }
 
         if (!updated) {
-            addInSubCollection(user.getEmail(), USER_PURCHASES_SUBCOLLECTION_NAME, userPurchaseInfo.getOfferId(),
+            addInSubCollection(user.getEmail(), USER_PURCHASES_SUBCOLLECTION_NAME, userPurchaseInfo.getId(),
                     objectMapper.convertValue(userPurchaseInfo, Map.class));
         }
     }

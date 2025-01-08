@@ -9,6 +9,8 @@ import lombok.Setter;
 @Getter @Setter
 public class UserPurchaseInfo {
     @Id
+    private String id;
+    
     private String offerId;
 
     private boolean redeemed;

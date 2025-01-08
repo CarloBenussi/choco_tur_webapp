@@ -396,13 +396,17 @@ public class UserController {
 
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         User user = userService.getUserByEmail(userDetails.getUsername());
-        
+        if (userService.getUserPurchaseInfo(user, offerId) != null) {
+            return new ResponseEntity<>("A user purchase with ID " + offerId + " exists already", HttpStatus.BAD_REQUEST);
+        }
+
         Offer offer = offerService.getOffer(offerId);
 
         UserPurchaseInfo userPurchaseInfo = new UserPurchaseInfo();
+        userPurchaseInfo.setId(offerId);
         userPurchaseInfo.setOfferId(offerId);
-        userPurchaseInfo.setPurchaseTime(new Timestamp(System.currentTimeMillis()).toString());
-        userPurchaseInfo.setExpiryTime(new Timestamp(System.currentTimeMillis() + (offer.getDuration() * 1000)).toString());
+        userPurchaseInfo.setPurchaseTime(String.valueOf(new Timestamp(System.currentTimeMillis()).getTime()));
+        userPurchaseInfo.setExpiryTime(String.valueOf(new Timestamp(System.currentTimeMillis() + (offer.getDuration() * 1000)).getTime()));
         userPurchaseInfo.setRedeemed(false);
         userPurchaseInfo.setPurchaseMethod(0);
 
