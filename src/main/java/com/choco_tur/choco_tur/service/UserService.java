@@ -188,4 +188,8 @@ public class UserService {
     public void saveUserPurchase(User user, UserPurchaseInfo userPurchaseInfo) throws ExecutionException, InterruptedException {
         userRepository.saveUserPurchase(user, userPurchaseInfo);
     }
+
+    public void deleteUser(User user) throws ExecutionException, InterruptedException {
+        userRepository.deleteUser(user);
+    }
 }

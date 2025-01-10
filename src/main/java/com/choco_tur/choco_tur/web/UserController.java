@@ -433,4 +433,19 @@ public class UserController {
 
         return ResponseEntity.ok(userPurchaseInfos);
     }
+
+    @PostMapping("/manage/delete")
+    public ResponseEntity<?> deleteUser(@RequestBody String body) throws ExecutionException, InterruptedException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (!authentication.isAuthenticated()) {
+            return new ResponseEntity<>("User is not authenticated", HttpStatus.UNAUTHORIZED);
+        }
+
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        User user = userService.getUserByEmail(userDetails.getUsername());
+
+        userService.deleteUser(user);
+
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

@@ -244,4 +244,8 @@ public class UserRepository extends FirestoreRepository<User> {
                     objectMapper.convertValue(userPurchaseInfo, Map.class));
         }
     }
+
+    public void deleteUser(User user) throws ExecutionException, InterruptedException {
+        deleteDocument(user.getEmail());
+    }
 }

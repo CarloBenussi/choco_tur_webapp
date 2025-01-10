@@ -75,4 +75,8 @@ public abstract class FirestoreRepository<T> {
         DocumentReference newDoc = firestore.collection(collection).document(id).collection(subCollection).document(subId);
         newDoc.set(data);
     }
+
+    protected void deleteDocument(String id) {
+        firestore.collection(collection).document(id).delete();
+    }
 }
